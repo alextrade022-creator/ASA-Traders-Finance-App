@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+/* Design tokens — every colour/font in the UI comes from here as a Tailwind utility
+   (bg-card, text-muted, border-line, font-heading, text-caption, …). */
+@theme {
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+
+  --text-2xs: 0.6875rem;
+  --text-caption: 0.8125rem;
+  --text-body: 0.9375rem;
+  --text-title: 1.0625rem;
+
+  /* Neutrals */
+  --color-ink: #1d2b22;
+  --color-paper: #f4f2ea;
+  --color-card: #fffdf7;
+  --color-line: #e4e0d2;
+  --color-field: #d9d4c3;
+  --color-divider: #ece8da;
+  --color-stone: #cfc9b6;
+  --color-muted: #5f6b62;
+  --color-faint: #8b938d;
+  --color-sand: #f1eee3;
+  --color-sand-hover: #efece0;
+
+  /* Brand greens */
+  --color-forest: #1f5c3d;
+  --color-forest-dark: #174a30;
+  --color-sage: #9fb89a;
+  --color-mint: #e3ece1;
+  --color-mint-hover: #d3e2d0;
+  --color-mist: #cfdccd;
+  --color-fog: #b9c6b8;
+  --color-haze: #dfe7de;
+
+  /* Status */
+  --color-profit: #2e7d4a;
+  --color-profit-soft: #e1efe4;
+  --color-profit-deep: #22663b;
+  --color-profit-light: #8fd3a5;
+  --color-loss: #c2412d;
+  --color-loss-soft: #fbe9e4;
+  --color-loss-deep: #a1351c;
+  --color-loss-light: #f19a86;
+  --color-coral: #d98a76;
+  --color-danger: #b0391f;
+  --color-danger-line: #ecc9c1;
+  --color-danger-soft: #fbece8;
+  --color-danger-wash: #f3e3df;
+  --color-amber: #d4952a;
+  --color-amber-soft: #fbefd6;
+  --color-amber-deep: #8a5a0b;
+  --color-amber-light: #f0c46e;
+  --color-caramel: #d9a25a;
+}
+
+@layer base {
+  body {
+    @apply m-0 bg-paper font-sans text-ink tabular-nums antialiased;
+  }
+
+  button:not(:disabled),
+  select {
+    cursor: pointer;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  input[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}

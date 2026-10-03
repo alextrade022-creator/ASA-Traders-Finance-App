@@ -1,0 +1,6 @@
+# Keep source-only material out of the Vercel upload
+legacy
+uploads
+node_modules
+dist
+.claude

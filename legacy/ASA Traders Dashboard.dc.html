@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#f4f2ea}*{box-sizing:border-box}a{color:#1f5c3d}a:hover{color:#163f2b}input,select,button{font-family:inherit}input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}input[type=number]{-moz-appearance:textfield}</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</helmet>
+<div style="min-height:100vh;background:#f4f2ea;font-family:'Hanken Grotesk',system-ui,sans-serif;color:#1d2b22;font-variant-numeric:tabular-nums">
+<header style="background:#1d2b22;color:#f4f2ea;position:sticky;top:0;z-index:30">
+<div style="max-width:1240px;margin:0 auto;padding:12px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;justify-content:space-between">
+<div style="display:flex;align-items:center;gap:12px">
+<div style="width:38px;height:38px;border-radius:50%;background:#9fb89a;color:#1d2b22;display:grid;place-items:center;font:700 16px/1 'Bricolage Grotesque',sans-serif">A</div>
+<div><div style="font:700 19px/1.1 'Bricolage Grotesque',sans-serif;letter-spacing:-.01em">ASA Traders</div><div style="font-size:12px;color:#b9c6b8">Green cardamom · Kumily → Malabar</div></div>
+</div>
+<nav style="display:flex;flex-wrap:wrap;gap:4px;background:rgba(255,255,255,.08);padding:4px;border-radius:22px">
+<button onClick="{{goDash}}" style="border:none;border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px;white-space:nowrap;background:{{navDashBg}};color:{{navDashFg}}">Dashboard</button>
+<button onClick="{{goEntry}}" style="border:none;border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px;white-space:nowrap;background:{{navEntryBg}};color:{{navEntryFg}}">Consignments</button>
+<button onClick="{{goFixed}}" style="border:none;border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px;white-space:nowrap;background:{{navFixedBg}};color:{{navFixedFg}}">Fixed costs</button>
+<button onClick="{{goAcc}}" style="border:none;border-radius:999px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer;min-height:40px;white-space:nowrap;background:{{navAccBg}};color:{{navAccFg}}">Accounts</button>
+</nav>
+</div>
+</header>
+<main style="max-width:1240px;margin:0 auto;padding:22px 16px 60px">
+<sc-if value="{{isDash}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:12px;color:#5f6b62;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Monthly overview · {{scopeLabel}}</div><h1 style="margin:4px 0 0;font:700 clamp(28px,4vw,38px)/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">{{monthLong}}</h1></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
+<select value="{{month}}" onChange="{{onMonth}}" style="padding:9px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{monthOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+<select value="{{consSel}}" onChange="{{onCons}}" style="padding:9px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:15px;color:#1d2b22;min-height:42px"><option value="all">All consignments</option><sc-for list="{{consOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+<button onClick="{{exportMonthPdf}}" style="padding:10px 14px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:14px;cursor:pointer;min-height:42px" style-hover="background:#efece0">PDF</button>
+<button onClick="{{exportMonthXls}}" style="padding:10px 14px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:14px;cursor:pointer;min-height:42px" style-hover="background:#efece0">Excel</button>
+</div>
+</div>
+<div style="background:#1f5c3d;color:#f4f2ea;border-radius:18px;padding:22px 22px 20px;display:flex;flex-wrap:wrap;gap:18px 32px;align-items:flex-end;justify-content:space-between">
+<div style="display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;align-items:center;gap:10px"><span style="font-size:13px;font-weight:600;color:#cfdccd">Monthly net profit</span><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{netChipBg}};color:{{netChipFg}}">{{netChip}}</span></div>
+<div style="font:700 clamp(36px,7vw,56px)/1 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">{{netV}}</div>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:10px 22px;font-size:14px;color:#cfdccd;align-items:baseline">
+<div><div style="font-size:12px">Consignment profit</div><div style="font-size:18px;font-weight:700;color:#fff">{{heroProfit}}</div></div>
+<div style="font-size:18px">−</div>
+<div><div style="font-size:12px">Fixed costs</div><div style="font-size:18px;font-weight:700;color:#fff">{{heroFixed}}</div></div>
+<div style="font-size:18px">=</div>
+<div><div style="font-size:12px">Net</div><div style="font-size:18px;font-weight:700;color:#fff">{{netV}}</div></div>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,160px),1fr));gap:10px">
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Total sales</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif">{{kSales}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Total purchase</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif">{{kPur}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Consignment expenses</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif">{{kExp}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Consignment profit</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif;color:{{kProfColor}}">{{kProf}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Fixed costs (month)</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif;color:#c2412d">{{kFixed}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Consignments</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif">{{kCount}}</div><div style="font-size:12px;color:#5f6b62">{{kCountSub}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Total kg traded</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif">{{kKg}}</div></div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:4px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Avg profit / kg</div><div style="font:700 21px/1.15 'Bricolage Grotesque',sans-serif;color:{{kPerKgColor}}">{{kPerKg}}</div></div>
+</div>
+<sc-if value="{{noSet}}" hint-placeholder-val="{{ false }}">
+<div style="background:#fffdf7;border:1px dashed #cfc9b6;border-radius:14px;padding:28px;text-align:center;color:#5f6b62;font-size:15px;display:flex;flex-direction:column;gap:12px;align-items:center">No consignments recorded for this month yet.<button onClick="{{newCons}}" style="padding:10px 16px;border:none;border-radius:10px;background:#1f5c3d;color:#fff;font-weight:600;font-size:14px;cursor:pointer;min-height:42px">+ New Consignment</button></div>
+</sc-if>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px">
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Profit by consignment</div><div style="font-size:13px;color:#5f6b62">Tap a bar to open the full consignment summary</div></div>
+<div style="position:relative;height:220px;margin-top:18px;margin-bottom:6px">
+<div style="position:absolute;left:0;right:0;top:{{p1Zero}}%;border-top:1px solid rgba(29,43,34,.35)"></div>
+<div style="position:absolute;inset:0;display:flex;gap:6px">
+<sc-for list="{{p1Bars}}" as="b" hint-placeholder-count="4">
+<div onClick="{{b.open}}" onMouseMove="{{b.tip}}" onMouseLeave="{{hideTip}}" style="flex:1;position:relative;cursor:pointer;border-radius:8px" style-hover="background:rgba(31,92,61,.06)">
+<div style="position:absolute;left:50%;transform:translateX(-50%);width:min(52px,66%);top:{{b.top}}%;height:{{b.h}}%;background:{{b.color}};border-radius:5px"></div>
+<div style="position:absolute;left:50%;top:{{b.lt}}%;transform:{{b.lx}};font-size:11px;font-weight:700;white-space:nowrap;color:{{b.color}}">{{b.lab}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;gap:6px"><sc-for list="{{p1Bars}}" as="b"><div style="flex:1;text-align:center;font-size:11px;color:#5f6b62;font-weight:600">{{b.id}}</div></sc-for></div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#5f6b62">
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#2e7d4a"></span>Profit</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#c2412d"></span>Loss</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#d4952a"></span>In progress (profit on sold stock)</span>
+</div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Sales vs purchase vs expenses</div><div style="font-size:13px;color:#5f6b62">Per consignment · hover for amounts</div></div>
+<div style="height:220px;display:flex;gap:6px;margin-top:18px;margin-bottom:6px;border-bottom:1px solid rgba(29,43,34,.35)">
+<sc-for list="{{g2Bars}}" as="b" hint-placeholder-count="4">
+<div onClick="{{b.open}}" onMouseMove="{{b.tip}}" onMouseLeave="{{hideTip}}" style="flex:1;display:flex;align-items:flex-end;justify-content:center;gap:3px;cursor:pointer;border-radius:8px 8px 0 0" style-hover="background:rgba(31,92,61,.06)">
+<div style="width:min(16px,28%);height:{{b.sH}}%;background:#1f5c3d;border-radius:3px 3px 0 0"></div>
+<div style="width:min(16px,28%);height:{{b.pH}}%;background:#9fb89a;border-radius:3px 3px 0 0"></div>
+<div style="width:min(16px,28%);height:{{b.eH}}%;min-height:2px;background:#d9a25a;border-radius:3px 3px 0 0"></div>
+</div>
+</sc-for>
+</div>
+<div style="display:flex;gap:6px"><sc-for list="{{g2Bars}}" as="b"><div style="flex:1;text-align:center;font-size:11px;color:#5f6b62;font-weight:600">{{b.id}}</div></sc-for></div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#5f6b62">
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#1f5c3d"></span>Sales</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#9fb89a"></span>Purchase</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#d9a25a"></span>Expenses</span>
+</div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Monthly trend</div><div style="font-size:13px;color:#5f6b62">Sales (bars) with consignment &amp; net profit (lines) · tap a month to switch</div></div>
+<div style="position:relative;height:220px;margin-top:6px">
+<div style="position:absolute;inset:0;display:flex;gap:8px;align-items:flex-end">
+<sc-for list="{{trCols}}" as="t" hint-placeholder-count="3">
+<div onClick="{{t.pick}}" onMouseMove="{{t.tip}}" onMouseLeave="{{hideTip}}" style="flex:1;height:100%;display:flex;align-items:flex-end;justify-content:center;cursor:pointer;border-radius:8px;background:{{t.bg}}" style-hover="background:rgba(31,92,61,.07)">
+<div style="width:min(60px,62%);height:{{t.h}}%;background:#e3ece1;border-radius:5px 5px 0 0"></div>
+</div>
+</sc-for>
+</div>
+{{trendSvg}}
+<sc-for list="{{trDots}}" as="p"><div style="position:absolute;left:{{p.x}}%;top:{{p.y}}%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:{{p.c}};border:2px solid #fffdf7;pointer-events:none"></div></sc-for>
+</div>
+<div style="display:flex;gap:8px"><sc-for list="{{trCols}}" as="t"><div style="flex:1;text-align:center;font-size:11px;color:#5f6b62;font-weight:600">{{t.l}}</div></sc-for></div>
+<div style="display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:#5f6b62">
+<span style="display:flex;align-items:center;gap:6px"><span style="width:10px;height:10px;border-radius:3px;background:#cfdccd"></span>Sales</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:3px;background:#2e7d4a"></span>Consignment profit</span>
+<span style="display:flex;align-items:center;gap:6px"><span style="width:16px;height:0;border-top:3px dashed #1d2b22"></span>Net profit</span>
+</div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Monthly profit bridge</div><div style="font-size:13px;color:#5f6b62">Consignment profit, less each fixed cost, to net · tap to edit fixed costs</div></div>
+<div style="position:relative;height:220px;margin-top:18px;margin-bottom:6px">
+<div style="position:absolute;left:0;right:0;top:{{wfZero}}%;border-top:1px solid rgba(29,43,34,.35)"></div>
+<div style="position:absolute;inset:0;display:flex;gap:6px">
+<sc-for list="{{wfBars}}" as="b" hint-placeholder-count="5">
+<div onClick="{{goFixed}}" onMouseMove="{{b.tip}}" onMouseLeave="{{hideTip}}" style="flex:1;position:relative;cursor:pointer;border-radius:8px" style-hover="background:rgba(31,92,61,.06)">
+<div style="position:absolute;left:12%;right:12%;top:{{b.top}}%;height:{{b.h}}%;background:{{b.color}};border-radius:4px"></div>
+<div style="position:absolute;left:50%;top:{{b.top}}%;transform:translate(-50%,-115%);font-size:11px;font-weight:700;white-space:nowrap;color:{{b.color}}">{{b.lab}}</div>
+</div>
+</sc-for>
+</div>
+</div>
+<div style="display:flex;gap:6px"><sc-for list="{{wfBars}}" as="b"><div style="flex:1;text-align:center;font-size:11px;line-height:1.2;color:#5f6b62;font-weight:600">{{b.l}}</div></sc-for></div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Grade-wise margin</div><div style="font-size:13px;color:#5f6b62">Profit per kg sold, after allocated expenses · loss-making grades in red</div></div>
+<sc-if value="{{hasGm}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{gmRows}}" as="g" hint-placeholder-count="4">
+<div onClick="{{g.open}}" onMouseMove="{{g.tip}}" onMouseLeave="{{hideTip}}" style="display:grid;grid-template-columns:92px minmax(0,1fr) 70px;gap:10px;align-items:center;cursor:pointer;padding:3px 4px;border-radius:8px" style-hover="background:rgba(31,92,61,.06)">
+<div style="font-size:13px;font-weight:600">{{g.name}}</div>
+<div style="position:relative;height:24px;background:#f1eee3;border-radius:5px">
+<div style="position:absolute;top:0;bottom:0;left:{{gmZero}}%;border-left:1px solid rgba(29,43,34,.4)"></div>
+<div style="position:absolute;top:4px;bottom:4px;left:{{g.left}}%;width:{{g.w}}%;background:{{g.color}};border-radius:3px"></div>
+</div>
+<div style="text-align:right;font-size:13px;font-weight:700;color:{{g.color}}">{{g.val}}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noGm}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#5f6b62;padding:20px 0">No sales recorded yet.</div></sc-if>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Expense breakdown</div><div style="font-size:13px;color:#5f6b62">Consignment expenses by category · tap to see entries</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:20px;align-items:center">
+<div onMouseMove="{{donutMove}}" onMouseLeave="{{hideTip}}" onClick="{{donutClick}}" style="width:180px;height:180px;border-radius:50%;background:{{donutBg}};position:relative;cursor:pointer;flex:none">
+<div style="position:absolute;inset:36px;border-radius:50%;background:#fffdf7;display:grid;place-items:center;text-align:center;pointer-events:none"><div><div style="font-size:11px;color:#5f6b62;font-weight:600">Total</div><div style="font:700 19px/1.1 'Bricolage Grotesque',sans-serif">{{expTotalShort}}</div></div></div>
+</div>
+<div style="flex:1;min-width:190px;display:flex;flex-direction:column;gap:2px">
+<sc-for list="{{expLegend}}" as="e" hint-placeholder-count="5">
+<div onClick="{{e.open}}" style="display:grid;grid-template-columns:12px minmax(0,1fr) auto 40px;gap:8px;align-items:center;font-size:13px;padding:5px 6px;border-radius:7px;cursor:pointer" style-hover="background:rgba(31,92,61,.07)">
+<span style="width:10px;height:10px;border-radius:3px;background:{{e.c}}"></span><span>{{e.n}}</span><span style="font-weight:700">{{e.v}}</span><span style="text-align:right;color:#5f6b62">{{e.p}}</span>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;grid-column:1/-1">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-end">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Buyer-wise report</div><div style="font-size:13px;color:#5f6b62">Profit/kg = buyer’s avg selling price − avg cost per kg · tap a buyer to see their sales</div></div>
+<div style="background:#f1eee3;border-radius:10px;padding:8px 12px"><div style="font-size:11px;color:#5f6b62;font-weight:600">Avg cost per kg (purchase + expenses ÷ kg)</div><div style="font-weight:700;font-size:17px">{{avgCostLabel}}</div></div>
+</div>
+<sc-if value="{{hasBuyers}}" hint-placeholder-val="{{ true }}">
+<div style="overflow-x:auto"><div style="min-width:720px;display:flex;flex-direction:column">
+<div style="display:grid;grid-template-columns:minmax(170px,1.8fr) repeat(6,minmax(84px,1fr));gap:8px;font-size:11px;font-weight:700;color:#5f6b62;text-transform:uppercase;letter-spacing:.05em;padding:4px 8px"><span>Buyer</span><span style="text-align:right">Kg sold</span><span style="text-align:right">Amount</span><span style="text-align:right">Avg sell/kg</span><span style="text-align:right">Avg cost/kg</span><span style="text-align:right">Profit/kg</span><span style="text-align:right">Profit</span></div>
+<sc-for list="{{buyerRows}}" as="b" hint-placeholder-count="3">
+<div onClick="{{b.open}}" style="display:grid;grid-template-columns:minmax(170px,1.8fr) repeat(6,minmax(84px,1fr));gap:8px;padding:11px 8px;border-top:1px solid #ece8da;font-size:14px;cursor:pointer;border-radius:6px;align-items:center" style-hover="background:rgba(31,92,61,.06)">
+<div><div style="font-weight:700">{{b.name}}</div><div style="font-size:12px;color:#5f6b62">{{b.deals}}</div></div>
+<span style="text-align:right">{{b.kg}}</span><span style="text-align:right">{{b.amt}}</span><span style="text-align:right">{{b.sell}}</span><span style="text-align:right;color:#5f6b62">{{b.cost}}</span><span style="text-align:right;font-weight:700;color:{{b.pc}}">{{b.ppk}}</span><span style="text-align:right;font-weight:700;color:{{b.pc}}">{{b.profit}}</span>
+</div>
+</sc-for>
+<div style="display:grid;grid-template-columns:minmax(170px,1.8fr) repeat(6,minmax(84px,1fr));gap:8px;padding:11px 8px 0;border-top:2px solid #1d2b22;font-size:14px;font-weight:700"><span>Total</span><span style="text-align:right">{{buyerTot.kg}}</span><span style="text-align:right">{{buyerTot.amt}}</span><span style="text-align:right">{{buyerTot.sell}}</span><span style="text-align:right">{{buyerTot.cost}}</span><span style="text-align:right;color:{{buyerTot.pc}}">{{buyerTot.ppk}}</span><span style="text-align:right;color:{{buyerTot.pc}}">{{buyerTot.profit}}</span></div>
+</div></div>
+</sc-if>
+<sc-if value="{{noBuyers}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#5f6b62;padding:12px 0">No sales recorded yet.</div></sc-if>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Stock position</div><div style="font-size:13px;color:#5f6b62">Unsold kg by grade in in-progress consignments</div></div>
+<sc-if value="{{hasStock}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<sc-for list="{{stockRows}}" as="s" hint-placeholder-count="3">
+<div onClick="{{s.open}}" onMouseMove="{{s.tip}}" onMouseLeave="{{hideTip}}" style="display:grid;grid-template-columns:92px minmax(0,1fr) 70px;gap:10px;align-items:center;cursor:pointer;padding:3px 4px;border-radius:8px" style-hover="background:rgba(212,149,42,.1)">
+<div style="font-size:13px;font-weight:600">{{s.name}}</div>
+<div style="height:24px;background:#f1eee3;border-radius:5px;position:relative"><div style="position:absolute;left:0;top:4px;bottom:4px;width:{{s.w}}%;background:#d4952a;border-radius:3px"></div></div>
+<div style="text-align:right;font-size:13px;font-weight:700;color:#8a5a0b">{{s.v}}</div>
+</div>
+</sc-for>
+</div>
+</sc-if>
+<sc-if value="{{noStock}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#5f6b62;padding:20px 0">All stock sold — no consignments in progress.</div></sc-if>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:8px;min-width:0">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Consignments this month</div><div style="font-size:13px;color:#5f6b62">Tap a row for the full summary</div></div><button onClick="{{newCons}}" style="padding:8px 12px;border:none;border-radius:10px;background:#1f5c3d;color:#fff;font-weight:600;font-size:13px;cursor:pointer;min-height:40px">+ New</button></div>
+<sc-for list="{{listRows}}" as="r" hint-placeholder-count="4">
+<div onClick="{{r.open}}" style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 8px;border-top:1px solid #ece8da;cursor:pointer;border-radius:8px" style-hover="background:rgba(31,92,61,.06)">
+<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-weight:700;font-size:14px">{{r.id}}</span><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:{{r.sBg}};color:{{r.sFg}}">{{r.status}}</span></div>
+<div style="text-align:right;font-weight:700;font-size:14px;color:{{r.pc}}">{{r.profit}}</div>
+<div style="font-size:12px;color:#5f6b62">{{r.date}} · {{r.supplier}}</div>
+<div style="font-size:12px;color:#5f6b62;text-align:right">{{r.kg}} · {{r.perKg}}/kg</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isEntry}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:12px;color:#5f6b62;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Record a consignment</div><h1 style="margin:4px 0 0;font:700 clamp(28px,4vw,38px)/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">Purchase → Expenses → Sales</h1></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<select value="{{activeId}}" onChange="{{onActive}}" style="padding:9px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:15px;color:#1d2b22;min-height:42px;max-width:100%"><sc-for list="{{activeOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+<button onClick="{{newCons}}" style="padding:10px 16px;border:none;border-radius:10px;background:#1f5c3d;color:#fff;font-weight:600;font-size:14px;cursor:pointer;min-height:42px;white-space:nowrap" style-hover="background:#174a30">+ New Consignment</button>
+</div>
+</div>
+<sc-if value="{{noActive}}" hint-placeholder-val="{{ false }}"><div style="background:#fffdf7;border:1px dashed #cfc9b6;border-radius:14px;padding:28px;text-align:center;color:#5f6b62">No consignments yet. Tap “+ New Consignment” to start.</div></sc-if>
+<sc-if value="{{hasActive}}" hint-placeholder-val="{{ true }}">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px;align-items:start">
+<div style="display:flex;flex-direction:column;gap:16px;min-width:0;grid-column:1/-1">
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+<div style="display:flex;align-items:center;gap:10px"><span style="font:700 24px/1 'Bricolage Grotesque',sans-serif">{{a.id}}</span><span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{a.sBg}};color:{{a.sFg}}">{{a.status}}</span></div>
+<div style="display:flex;gap:8px"><button onClick="{{openActiveDetail}}" style="padding:8px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:13px;cursor:pointer;min-height:40px;white-space:nowrap" style-hover="background:#efece0">Full summary</button><button onClick="{{delCons}}" style="padding:8px 12px;border:1px solid #ecc9c1;border-radius:10px;background:#fffdf7;color:#b0391f;font-weight:600;font-size:13px;cursor:pointer;min-height:40px;white-space:nowrap" style-hover="background:#fbece8">Delete</button></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr));gap:10px">
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Date<input type="date" value="{{a.date}}" onChange="{{a.onDate}}" style="padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Supplier (Kumily)<input value="{{a.supplier}}" onChange="{{a.onSupplier}}" placeholder="Supplier name" style="padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Notes<input value="{{a.notes}}" onChange="{{a.onNotes}}" placeholder="Optional" style="padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"></label>
+</div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<sc-for list="{{steps}}" as="s">
+<button onClick="{{s.go}}" style="border:1px solid {{s.bd}};background:{{s.bg}};color:{{s.fg}};border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:3px;min-height:56px">
+<span style="font-size:12px;font-weight:700;opacity:.85">Step {{s.n}} · {{s.l}}</span><span style="font-size:15px;font-weight:700">{{s.v}}</span>
+</button>
+</sc-for>
+</div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0;grid-column:span 1">
+<sc-if value="{{isPur}}" hint-placeholder-val="{{ true }}">
+<div style="display:flex;flex-direction:column;gap:10px">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Purchase details</div><div style="font-size:13px;color:#5f6b62">Enter kg, then either the rate or the total amount. The other one calculates automatically.</div></div>
+<label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#5f6b62;flex-wrap:wrap">Paid from<select value="{{purAcc}}" onChange="{{onPurAcc}}" style="padding:8px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select></label>
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;font-size:11px;font-weight:700;color:#5f6b62;text-transform:uppercase;letter-spacing:.05em;padding:0 2px"><span>Grade</span><span style="text-align:right">Qty (kg)</span><span style="text-align:right">Rate ₹/kg</span><span style="text-align:right">Amount</span></div>
+<sc-for list="{{purRows}}" as="r">
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:center">
+<div style="min-width:0"><div style="font-size:14px;font-weight:600">{{r.name}}</div><div style="font-size:11px;color:#5f6b62">{{r.sub}}</div></div>
+<input type="number" step="any" min="0" value="{{r.kg}}" onChange="{{r.onKg}}" placeholder="0" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+<input type="number" step="any" min="0" value="{{r.rate}}" onChange="{{r.onRate}}" placeholder="0" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:{{r.rateBg}};font-size:16px;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+<input type="number" step="any" min="0" value="{{r.amtIn}}" onChange="{{r.onAmt}}" placeholder="₹ 0" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;font-weight:700;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+</div>
+</sc-for>
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;padding:12px 2px 0;border-top:2px solid #1d2b22;font-weight:700;font-size:15px"><span>Total</span><span style="text-align:right">{{purTotKg}}</span><span></span><span style="text-align:right">{{purTotAmt}}</span></div>
+</div>
+</sc-if>
+<sc-if value="{{isExp}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column">
+<div style="padding-bottom:10px"><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Consignment expenses</div><div style="font-size:13px;color:#5f6b62">Add as many entries per category as you need.</div></div>
+<label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#5f6b62;flex-wrap:wrap;padding-bottom:12px">Expenses paid from<select value="{{expAcc}}" onChange="{{onExpAcc}}" style="padding:8px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select></label>
+<sc-for list="{{expCats}}" as="cat">
+<div style="padding:12px 0;border-top:1px solid #ece8da;display:flex;flex-direction:column;gap:8px">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px"><span style="width:10px;height:10px;border-radius:3px;background:{{cat.color}}"></span>{{cat.name}}</div><div style="font-weight:700;font-size:14px">{{cat.total}}</div></div>
+<sc-for list="{{cat.entries}}" as="en">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) 40px;gap:8px">
+<input type="number" step="any" min="0" placeholder="₹ Amount" value="{{en.amount}}" onChange="{{en.onAmt}}" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+<input placeholder="{{cat.notePh}}" value="{{en.note}}" onChange="{{en.onNote}}" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+<button onClick="{{en.onDel}}" title="Remove" style="border:none;background:none;color:#8b938d;font-size:20px;cursor:pointer;border-radius:8px;visibility:{{en.vis}}" style-hover="background:#f3e3df;color:#b0391f">×</button>
+</div>
+</sc-for>
+<sc-if value="{{cat.hasReal}}"><button onClick="{{cat.add}}" style="align-self:flex-start;background:none;border:none;color:#1f5c3d;font-weight:600;font-size:13px;cursor:pointer;padding:4px 0">+ Add another entry</button></sc-if>
+</div>
+</sc-for>
+<div style="display:flex;justify-content:space-between;padding:12px 0 0;border-top:2px solid #1d2b22;font-weight:700;font-size:15px"><span>Total consignment expense</span><span>{{expTot}}</span></div>
+</div>
+</sc-if>
+<sc-if value="{{isSal}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:12px">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Sales details</div><div style="font-size:13px;color:#5f6b62">One entry per buyer. Enter kg, then either the rate or the total amount. The other one calculates automatically.</div></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px">
+<sc-for list="{{saleTabs}}" as="t"><button onClick="{{t.go}}" style="border:1px solid {{t.bd}};background:{{t.bg}};color:{{t.fg}};border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:38px">{{t.l}}</button></sc-for>
+<button onClick="{{addSale}}" style="border:1px dashed #9fb89a;background:none;color:#1f5c3d;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer;min-height:38px">+ Add buyer</button>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto;gap:8px;align-items:end">
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Buyer<input value="{{sale.buyer}}" onChange="{{sale.onBuyer}}" placeholder="e.g. Kannur Spice House" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Date<input type="date" value="{{sale.date}}" onChange="{{sale.onDate}}" style="width:100%;padding:9px 8px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"></label>
+<button onClick="{{sale.del}}" style="padding:8px 10px;border:1px solid #ecc9c1;border-radius:8px;background:#fffdf7;color:#b0391f;font-weight:600;font-size:13px;cursor:pointer;min-height:42px;visibility:{{sale.vis}}">Remove</button>
+</div>
+<label style="display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:#5f6b62;flex-wrap:wrap">Received into<select value="{{sale.acc}}" onChange="{{sale.onAcc}}" style="padding:8px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select></label>
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;font-size:11px;font-weight:700;color:#5f6b62;text-transform:uppercase;letter-spacing:.05em;padding:0 2px"><span>Grade · stock</span><span style="text-align:right">Sold (kg)</span><span style="text-align:right">Rate ₹/kg</span><span style="text-align:right">Amount</span></div>
+<sc-for list="{{salRows}}" as="r">
+<div style="display:flex;flex-direction:column;gap:4px;padding:6px;margin:0 -6px;border-radius:10px;background:{{r.bg}};opacity:{{r.op}}">
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;align-items:center">
+<div style="min-width:0"><div style="font-size:14px;font-weight:600">{{r.name}}</div><div style="font-size:11px;font-weight:600;color:{{r.remC}}">{{r.rem}}</div></div>
+<input type="number" step="any" min="0" value="{{r.kg}}" onChange="{{r.onKg}}" placeholder="0" style="width:100%;padding:9px 10px;border:1px solid {{r.bd}};border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+<input type="number" step="any" min="0" value="{{r.rate}}" onChange="{{r.onRate}}" placeholder="0" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:{{r.rateBg}};font-size:16px;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+<input type="number" step="any" min="0" value="{{r.amtIn}}" onChange="{{r.onAmt}}" placeholder="₹ 0" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;font-weight:700;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+</div>
+<sc-if value="{{r.over}}"><div style="font-size:12px;font-weight:700;color:#b0391f">⚠ {{r.warn}}</div></sc-if>
+</div>
+</sc-for>
+<div style="display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;padding:12px 2px 0;border-top:2px solid #1d2b22;font-weight:700;font-size:15px"><span>This buyer</span><span style="text-align:right">{{salTotKg}}</span><span></span><span style="text-align:right">{{salTotAmt}}</span></div>
+<div style="display:flex;justify-content:space-between;font-size:14px;color:#5f6b62;font-weight:600"><span>All buyers · {{salAllKg}}</span><span>{{salAllAmt}}</span></div>
+</div>
+</sc-if>
+<div style="display:flex;justify-content:flex-end;padding-top:6px"><button onClick="{{nextStep}}" style="padding:10px 16px;border:none;border-radius:10px;background:#1f5c3d;color:#fff;font-weight:600;font-size:14px;cursor:pointer;min-height:42px" style-hover="background:#174a30">{{nextLabel}}</button></div>
+</div>
+<div style="background:#1d2b22;color:#f4f2ea;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;position:sticky;top:90px">
+<div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Consignment profit</div>
+<div style="display:flex;flex-direction:column;gap:8px;font-size:14px">
+<div style="display:flex;justify-content:space-between"><span style="color:#b9c6b8">Total sales</span><span style="font-weight:700">{{sm.sales}}</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#b9c6b8">− Total purchase</span><span style="font-weight:700">{{sm.pur}}</span></div>
+<div style="display:flex;justify-content:space-between"><span style="color:#b9c6b8">− Consignment expenses</span><span style="font-weight:700">{{sm.exp}}</span></div>
+</div>
+<div style="border-top:1px solid rgba(255,255,255,.18);padding-top:12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px"><span style="font-size:13px;color:#b9c6b8">{{sm.label}}</span><span style="font:700 30px/1 'Bricolage Grotesque',sans-serif;color:{{sm.pc}}">{{sm.profit}}</span></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:10px"><div style="font-size:11px;color:#b9c6b8">Profit / kg</div><div style="font-weight:700;font-size:15px">{{sm.perKg}}</div></div>
+<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:10px"><div style="font-size:11px;color:#b9c6b8">Margin</div><div style="font-weight:700;font-size:15px">{{sm.margin}}</div></div>
+<div style="background:rgba(255,255,255,.07);border-radius:10px;padding:10px"><div style="font-size:11px;color:#b9c6b8">Stock left</div><div style="font-weight:700;font-size:15px">{{sm.stock}}</div></div>
+</div>
+<div style="font-size:12px;color:#b9c6b8;line-height:1.45">{{sm.note}}</div>
+</div>
+<sc-if value="{{isSal}}" hint-placeholder-val="{{ false }}">
+<div style="background:#fffdf7;border:1.5px solid #d4952a;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px;min-width:0">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Selling price simulator</div><div style="font-size:13px;color:#5f6b62">Try a price per kg for each grade to see profit, loss or break-even for this consignment</div></div>
+<button onClick="{{sim.reset}}" style="padding:6px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:12px;cursor:pointer;min-height:34px;white-space:nowrap" style-hover="background:#efece0">Reset</button>
+</div>
+<div style="font-size:12px;color:#5f6b62;background:#f1eee3;border-radius:8px;padding:8px 10px">Break-even = buy rate + expense per kg ({{sim.epk}}/kg on this consignment)</div>
+<sc-for list="{{sim.rows}}" as="g" hint-placeholder-count="3">
+<div style="display:flex;flex-direction:column;gap:8px;padding:12px 0;border-top:1px solid #ece8da">
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><div><span style="font-weight:700;font-size:15px">{{g.name}}</span><span style="font-size:12px;color:#5f6b62"> · {{g.rem}}</span></div><span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:{{g.chipBg}};color:{{g.chipFg}}">{{g.chip}}</span></div>
+<div style="font-size:12px;color:#5f6b62">Buy {{g.buy}} + exp {{g.epk}} = <span style="font-weight:700;color:#1d2b22">break-even {{g.be}}/kg</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:10px;align-items:center">
+<input type="range" min="{{g.min}}" max="{{g.max}}" step="5" value="{{g.price}}" onChange="{{g.onPrice}}" style="width:100%;accent-color:{{g.col}}">
+<input type="number" step="any" min="0" value="{{g.price}}" onChange="{{g.onPrice}}" style="width:100%;padding:7px 8px;border:1.5px solid {{g.col}};border-radius:8px;background:#fff;font-size:16px;font-weight:700;color:#1d2b22;text-align:right;min-height:40px">
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+<div style="display:flex;gap:14px;font-size:13px"><div><div style="font-size:11px;color:#5f6b62">Profit / kg</div><div style="font-weight:700;color:{{g.col}}">{{g.ppk}}</div></div><div><div style="font-size:11px;color:#5f6b62">{{g.remLabel}}</div><div style="font-weight:700;color:{{g.col}}">{{g.remProfit}}</div></div></div>
+<button onClick="{{g.apply}}" style="padding:6px 10px;border:none;border-radius:8px;background:#e3ece1;color:#1f5c3d;font-weight:700;font-size:12px;cursor:pointer;min-height:34px" style-hover="background:#d3e2d0">Use rate in this sale</button>
+</div>
+</div>
+</sc-for>
+<div style="border-top:2px solid #1d2b22;padding-top:12px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div><div style="font-size:11px;color:#5f6b62;font-weight:600">Projected final profit</div><div style="font:700 20px/1.1 'Bricolage Grotesque',sans-serif;color:{{sim.projC}}">{{sim.proj}}</div></div>
+<div><div style="font-size:11px;color:#5f6b62;font-weight:600">Break-even avg price</div><div style="font:700 20px/1.1 'Bricolage Grotesque',sans-serif">{{sim.need}}</div></div>
+</div>
+<div style="font-size:12px;color:#5f6b62;line-height:1.45">Projected profit assumes all remaining stock sells at the prices above. {{sim.needNote}}.</div>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+</sc-if>
+
+<sc-if value="{{isFixed}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:12px;color:#5f6b62;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Entered once per month</div><h1 style="margin:4px 0 0;font:700 clamp(28px,4vw,38px)/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">Monthly fixed costs</h1></div>
+<select value="{{fxMonth}}" onChange="{{onFxMonth}}" style="padding:9px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{fxMonthOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:16px;align-items:start">
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px">
+<div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">{{fxMonthLong}}</div>
+<sc-for list="{{fxRows}}" as="f">
+<div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:10px;align-items:center;padding:4px 0">
+<div style="display:flex;flex-direction:column;gap:4px;min-width:0"><span style="font-size:14px;font-weight:600">{{f.n}}</span><select value="{{f.acc}}" onChange="{{f.onAcc}}" style="padding:4px 6px;border:1px solid #e4e0d2;border-radius:6px;background:#fffdf7;font-size:12px;color:#5f6b62;max-width:190px"><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">Paid from: {{o.l}}</option></sc-for></select></div>
+<input type="number" step="any" min="0" placeholder="₹ 0" value="{{f.v}}" onChange="{{f.on}}" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;text-align:right;min-height:42px" style-focus="outline:2px solid #1f5c3d;outline-offset:-1px">
+</div>
+</sc-for>
+<div style="display:flex;justify-content:space-between;padding-top:12px;border-top:2px solid #1d2b22;font-weight:700;font-size:15px"><span>Total fixed costs</span><span>{{fxTotal}}</span></div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:4px">
+<div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif;padding-bottom:8px">Net profit by month</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;font-size:11px;font-weight:700;color:#5f6b62;text-transform:uppercase;letter-spacing:.05em;padding:4px 6px"><span>Month</span><span style="text-align:right">Cons. profit</span><span style="text-align:right">Fixed</span><span style="text-align:right">Net</span></div>
+<sc-for list="{{fxSummary}}" as="m">
+<div onClick="{{m.pick}}" style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);gap:8px;font-size:14px;padding:10px 6px;border-top:1px solid #ece8da;cursor:pointer;border-radius:6px" style-hover="background:rgba(31,92,61,.06)"><span style="font-weight:600">{{m.l}}</span><span style="text-align:right">{{m.p}}</span><span style="text-align:right;color:#c2412d">{{m.f}}</span><span style="text-align:right;font-weight:700;color:{{m.nc}}">{{m.n}}</span></div>
+</sc-for>
+</div>
+</div>
+</div>
+</sc-if>
+<sc-if value="{{isAcc}}" hint-placeholder-val="{{ false }}">
+<div style="display:flex;flex-direction:column;gap:16px">
+<div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;justify-content:space-between">
+<div><div style="font-size:12px;color:#5f6b62;font-weight:700;letter-spacing:.08em;text-transform:uppercase">Bank, cash &amp; cash book</div><h1 style="margin:4px 0 0;font:700 clamp(28px,4vw,38px)/1.05 'Bricolage Grotesque',sans-serif;letter-spacing:-.02em">Accounts</h1></div>
+<div style="display:flex;flex-direction:column;align-items:flex-end"><span style="font-size:12px;color:#5f6b62;font-weight:600">Total balance, all accounts</span><span style="font:700 26px/1.1 'Bricolage Grotesque',sans-serif">{{accTotal}}</span></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px">
+<sc-for list="{{accCards}}" as="a" hint-placeholder-count="3">
+<div style="background:#fffdf7;border:1px solid {{a.bd}};border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><div style="font-size:11px;color:#5f6b62;font-weight:700;text-transform:uppercase;letter-spacing:.06em">{{a.type}}</div><div style="font-weight:700;font-size:16px">{{a.name}}</div></div><button onClick="{{a.edit}}" style="padding:6px 12px;border:1px solid #d9d4c3;border-radius:8px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:13px;cursor:pointer;min-height:36px" style-hover="background:#efece0">Edit</button></div>
+<div><div style="font-size:12px;color:#5f6b62;font-weight:600">Current balance</div><div style="font:700 26px/1.1 'Bricolage Grotesque',sans-serif;color:{{a.bc}}">{{a.bal}}</div></div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;font-size:12px">
+<div><div style="color:#5f6b62">Opening</div><div style="font-weight:700">{{a.op}}</div></div>
+<div><div style="color:#5f6b62">Income</div><div style="font-weight:700;color:#2e7d4a">{{a.inc}}</div></div>
+<div><div style="color:#5f6b62">Expense</div><div style="font-weight:700;color:#c2412d">{{a.out}}</div></div>
+</div>
+<button onClick="{{a.filter}}" style="align-self:flex-start;background:none;border:none;color:#1f5c3d;font-weight:600;font-size:13px;cursor:pointer;padding:0">View transactions →</button>
+</div>
+</sc-for>
+<button onClick="{{newAcc}}" style="border:1.5px dashed #9fb89a;border-radius:16px;background:none;color:#1f5c3d;font-weight:700;font-size:15px;cursor:pointer;min-height:120px" style-hover="background:rgba(31,92,61,.05)">+ New account</button>
+</div>
+<sc-if value="{{showAf}}" hint-placeholder-val="{{ false }}">
+<div style="background:#fffdf7;border:1.5px solid #1f5c3d;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">{{afTitle}}</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:10px">
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Account name<input value="{{afName}}" onChange="{{onAfName}}" placeholder="e.g. Canara Bank A/c" style="padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Type<select value="{{afType}}" onChange="{{onAfType}}" style="padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"><sc-for list="{{afTypes}}" as="t"><option value="{{t}}">{{t}}</option></sc-for></select></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Opening balance (₹)<input type="number" step="any" value="{{afOpening}}" onChange="{{onAfOpening}}" placeholder="0" style="padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px;text-align:right"></label>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:space-between">
+<button onClick="{{delAf}}" style="padding:10px 14px;border:1px solid #ecc9c1;border-radius:10px;background:#fffdf7;color:#b0391f;font-weight:600;font-size:14px;cursor:pointer;min-height:42px;visibility:{{afDelVis}}">Delete account</button>
+<div style="display:flex;gap:8px"><button onClick="{{cancelAf}}" style="padding:10px 14px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:14px;cursor:pointer;min-height:42px">Cancel</button><button onClick="{{saveAf}}" style="padding:10px 16px;border:none;border-radius:10px;background:#1f5c3d;color:#fff;font-weight:600;font-size:14px;cursor:pointer;min-height:42px">Save account</button></div>
+</div>
+</div>
+</sc-if>
+<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start">
+<div ref="{{mfRef}}" style="flex:1 1 320px;max-width:100%;background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">{{mfTitle}}</div><div style="font-size:13px;color:#5f6b62">Consignment purchases, expenses, sales and fixed costs are added to the cash book automatically.</div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;background:#f1eee3;padding:4px;border-radius:12px">
+<button onClick="{{mfSetIn}}" style="border:none;border-radius:9px;padding:9px;font-weight:700;font-size:14px;cursor:pointer;min-height:40px;background:{{mfInBg}};color:{{mfInFg}}">+ Income</button>
+<button onClick="{{mfSetOut}}" style="border:none;border-radius:9px;padding:9px;font-weight:700;font-size:14px;cursor:pointer;min-height:40px;background:{{mfOutBg}};color:{{mfOutFg}}">− Expense</button>
+</div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Date<input type="date" value="{{mf.date}}" onChange="{{onMfDate}}" style="width:100%;padding:9px 8px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Amount (₹)<input type="number" step="any" min="0" value="{{mf.amount}}" onChange="{{onMfAmount}}" placeholder="0" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;font-weight:700;color:#1d2b22;text-align:right;min-height:42px"></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Category<select value="{{mf.cat}}" onChange="{{onMfCat}}" style="width:100%;padding:9px 8px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{mfCats}}" as="c"><option value="{{c}}">{{c}}</option></sc-for></select></label>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Account<select value="{{mf.acc}}" onChange="{{onMfAcc}}" style="width:100%;padding:9px 8px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:15px;color:#1d2b22;min-height:42px"><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select></label>
+</div>
+<label style="display:flex;flex-direction:column;gap:5px;font-size:12px;font-weight:600;color:#5f6b62">Description<input value="{{mf.desc}}" onChange="{{onMfDesc}}" placeholder="Optional note" style="width:100%;padding:9px 10px;border:1px solid #d9d4c3;border-radius:8px;background:#fff;font-size:16px;color:#1d2b22;min-height:42px"></label>
+<div style="display:flex;gap:8px;justify-content:flex-end"><button onClick="{{cancelMf}}" style="padding:10px 14px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:14px;cursor:pointer;min-height:42px;visibility:{{mfCancelVis}}">Cancel</button><button onClick="{{saveMf}}" style="padding:10px 16px;border:none;border-radius:10px;background:#1f5c3d;color:#fff;font-weight:600;font-size:14px;cursor:pointer;min-height:42px" style-hover="background:#174a30">{{mfSaveLabel}}</button></div>
+</div>
+<div style="flex:999 1 480px;min-width:0;max-width:100%;background:#fffdf7;border:1px solid #e4e0d2;border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center"><div><div style="font:600 17px/1.2 'Bricolage Grotesque',sans-serif">Income &amp; expense</div><div style="font-size:13px;color:#5f6b62">{{lgCount}} · change the account on any row</div></div>
+<div style="display:flex;gap:8px"><button onClick="{{lgPdf}}" style="padding:8px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:13px;cursor:pointer;min-height:40px" style-hover="background:#efece0">PDF</button><button onClick="{{lgXls}}" style="padding:8px 12px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:13px;cursor:pointer;min-height:40px" style-hover="background:#efece0">Excel</button></div></div>
+<div style="display:flex;flex-wrap:wrap;gap:8px">
+<select value="{{lgMonth}}" onChange="{{onLgMonth}}" style="padding:8px 10px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:14px;color:#1d2b22;min-height:40px"><sc-for list="{{lgMonthOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+<select value="{{lgAcc}}" onChange="{{onLgAcc}}" style="padding:8px 10px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:14px;color:#1d2b22;min-height:40px"><option value="all">All accounts</option><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+<select value="{{lgType}}" onChange="{{onLgType}}" style="padding:8px 10px;border:1px solid #d9d4c3;border-radius:10px;background:#fffdf7;font-size:14px;color:#1d2b22;min-height:40px"><option value="all">Income &amp; expense</option><option value="in">Income only</option><option value="out">Expense only</option></select>
+</div>
+<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+<div style="background:#e1efe4;border-radius:10px;padding:10px 12px"><div style="font-size:12px;color:#22663b;font-weight:600">Income</div><div style="font-weight:700;font-size:16px;color:#22663b">{{lgIn}}</div></div>
+<div style="background:#fbe9e4;border-radius:10px;padding:10px 12px"><div style="font-size:12px;color:#a1351c;font-weight:600">Expense</div><div style="font-weight:700;font-size:16px;color:#a1351c">{{lgOut}}</div></div>
+<div style="background:#f1eee3;border-radius:10px;padding:10px 12px"><div style="font-size:12px;color:#5f6b62;font-weight:600">Net</div><div style="font-weight:700;font-size:16px;color:{{lgNetC}}">{{lgNet}}</div></div>
+</div>
+<sc-if value="{{noLg}}" hint-placeholder-val="{{ false }}"><div style="font-size:14px;color:#5f6b62;padding:16px 0">No entries for this filter.</div></sc-if>
+<div style="display:flex;flex-direction:column">
+<sc-for list="{{lgRows}}" as="r" hint-placeholder-count="6">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:10px 4px;border-top:1px solid #ece8da;align-items:center">
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;min-width:0"><span style="font-weight:700;font-size:14px">{{r.cat}}</span><span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:{{r.badgeBg}};color:{{r.badgeFg}}">{{r.ref}}</span></div>
+<div style="text-align:right;font-weight:700;font-size:15px;color:{{r.color}};white-space:nowrap">{{r.amt}}</div>
+<div style="font-size:12px;color:#5f6b62;min-width:0">{{r.date}} · {{r.desc}}</div>
+<div style="display:flex;gap:6px;justify-content:flex-end;align-items:center">
+<select value="{{r.acc}}" onChange="{{r.onAcc}}" style="padding:4px 6px;border:1px solid #e4e0d2;border-radius:6px;background:#fffdf7;font-size:12px;color:#1d2b22;max-width:150px;min-height:30px"><sc-for list="{{accOpts}}" as="o"><option value="{{o.v}}">{{o.l}}</option></sc-for></select>
+<button onClick="{{r.edit}}" style="padding:4px 10px;border:1px solid #d9d4c3;border-radius:6px;background:#fffdf7;color:#1d2b22;font-weight:600;font-size:12px;cursor:pointer;min-height:30px" style-hover="background:#efece0">Edit</button>
+<sc-if value="{{r.canDel}}"><button onClick="{{r.del}}" title="Delete" style="padding:4px 8px;border:none;border-radius:6px;background:none;color:#8b938d;font-size:16px;cursor:pointer;min-height:30px" style-hover="background:#f3e3df;color:#b0391f">×</button></sc-if>
+</div>
+</div>
+</sc-for>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+</main>
+
+<sc-if value="{{showDetail}}" hint-placeholder-val="{{ false }}">
+<div onClick="{{closeDetail}}" style="position:fixed;inset:0;background:rgba(20,30,24,.5);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding:12px;overflow:auto">
+<div onClick="{{stop}}" style="width:100%;max-width:820px;background:#f4f2ea;border-radius:18px;margin:auto 0;display:flex;flex-direction:column;overflow:hidden">
+<div style="background:#1d2b22;color:#f4f2ea;padding:18px 20px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start">
+<div><div style="display:flex;align-items:center;gap:10px"><span style="font:700 26px/1 'Bricolage Grotesque',sans-serif">{{d.id}}</span><span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;background:{{d.sBg}};color:{{d.sFg}}">{{d.status}}</span></div><div style="font-size:13px;color:#b9c6b8;margin-top:6px">{{d.date}} · {{d.supplier}}</div></div>
+<button onClick="{{closeDetail}}" style="border:none;background:rgba(255,255,255,.1);color:#fff;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;flex:none">×</button>
+</div>
+<div style="display:flex;flex-wrap:wrap;gap:8px"><button onClick="{{d.edit}}" style="padding:8px 14px;border:none;border-radius:10px;background:#9fb89a;color:#1d2b22;font-weight:700;font-size:13px;cursor:pointer;min-height:40px">Edit entries</button><button onClick="{{d.pdf}}" style="padding:8px 14px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:none;color:#fff;font-weight:600;font-size:13px;cursor:pointer;min-height:40px">PDF</button><button onClick="{{d.xls}}" style="padding:8px 14px;border:1px solid rgba(255,255,255,.25);border-radius:10px;background:none;color:#fff;font-weight:600;font-size:13px;cursor:pointer;min-height:40px">Excel</button></div>
+</div>
+<div style="padding:16px;display:flex;flex-direction:column;gap:14px">
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:16px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,130px),1fr));gap:12px">
+<div><div style="font-size:12px;color:#5f6b62;font-weight:600">Sales</div><div style="font-weight:700;font-size:17px">{{d.sales}}</div></div>
+<div><div style="font-size:12px;color:#5f6b62;font-weight:600">− Purchase</div><div style="font-weight:700;font-size:17px">{{d.pur}}</div></div>
+<div><div style="font-size:12px;color:#5f6b62;font-weight:600">− Expenses</div><div style="font-weight:700;font-size:17px">{{d.exp}}</div></div>
+<div><div style="font-size:12px;color:#5f6b62;font-weight:600">= Profit</div><div style="font-weight:700;font-size:20px;color:{{d.pc}}">{{d.profit}}</div></div>
+<div><div style="font-size:12px;color:#5f6b62;font-weight:600">Per kg · margin</div><div style="font-weight:700;font-size:17px">{{d.perKg}} · {{d.margin}}</div></div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+<div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:6px">Purchase</div>
+<sc-for list="{{d.purRows}}" as="r"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;font-size:14px;padding:7px 0;border-top:1px solid #ece8da"><span style="font-weight:600">{{r.n}}</span><span style="text-align:right">{{r.kg}}</span><span style="text-align:right;color:#5f6b62">@ {{r.rate}}</span><span style="text-align:right;font-weight:700">{{r.amt}}</span></div></sc-for>
+<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;padding-top:8px;border-top:2px solid #1d2b22"><span>Total · {{d.pKg}}</span><span>{{d.pur}}</span></div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+<div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:6px">Expenses</div>
+<sc-for list="{{d.expRows}}" as="r"><div style="display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1.4fr) minmax(0,1fr);gap:8px;font-size:14px;padding:7px 0;border-top:1px solid #ece8da"><span style="font-weight:600">{{r.n}}</span><span style="color:#5f6b62">{{r.note}}</span><span style="text-align:right;font-weight:700">{{r.amt}}</span></div></sc-for>
+<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;padding-top:8px;border-top:2px solid #1d2b22"><span>Total</span><span>{{d.exp}}</span></div>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+<div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:6px">Sales by grade</div>
+<sc-for list="{{d.salRows}}" as="r"><div style="display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1.1fr);gap:8px;font-size:14px;padding:7px 0;border-top:1px solid #ece8da"><span style="font-weight:600">{{r.n}}</span><span style="text-align:right">{{r.kg}}</span><span style="text-align:right;color:#5f6b62">@ {{r.rate}}</span><span style="text-align:right;font-weight:700">{{r.amt}}</span></div></sc-for>
+<div style="display:flex;justify-content:space-between;font-weight:700;font-size:14px;padding-top:8px;border-top:2px solid #1d2b22"><span>Total · {{d.sKg}}</span><span>{{d.sales}}</span></div>
+<div style="font-size:12px;font-weight:700;color:#5f6b62;text-transform:uppercase;letter-spacing:.05em;padding:14px 0 4px">Buyers</div>
+<sc-for list="{{d.buyers}}" as="b"><div style="display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);gap:8px;font-size:13px;padding:6px 0;border-top:1px solid #ece8da"><span>{{b.n}} <span style="color:#5f6b62">· {{b.date}}</span></span><span style="text-align:right">{{b.kg}}</span><span style="text-align:right;font-weight:700">{{b.amt}}</span></div></sc-for>
+</div>
+<div style="background:#fffdf7;border:1px solid #e4e0d2;border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:2px">
+<div style="font:600 16px 'Bricolage Grotesque',sans-serif;padding-bottom:6px">Stock left</div>
+<sc-for list="{{d.stockRows}}" as="r"><div style="display:flex;justify-content:space-between;font-size:14px;padding:7px 0;border-top:1px solid #ece8da"><span style="font-weight:600">{{r.n}}</span><span style="font-weight:700;color:#8a5a0b">{{r.kg}}</span></div></sc-for>
+<sc-if value="{{d.noStock}}"><div style="font-size:14px;color:#22663b;font-weight:600;padding:4px 0">All stock sold — profit is final.</div></sc-if>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showDrill}}" hint-placeholder-val="{{ false }}">
+<div onClick="{{closeDrill}}" style="position:fixed;inset:0;background:rgba(20,30,24,.5);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding:12px;overflow:auto">
+<div onClick="{{stop}}" style="width:100%;max-width:620px;background:#fffdf7;border-radius:18px;margin:auto 0;padding:20px;display:flex;flex-direction:column;gap:6px">
+<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding-bottom:6px"><div><div style="font:700 22px/1.1 'Bricolage Grotesque',sans-serif">{{dr.title}}</div><div style="font-size:13px;color:#5f6b62;margin-top:4px">{{dr.sub}}</div></div><button onClick="{{closeDrill}}" style="border:none;background:#efece0;width:40px;height:40px;border-radius:50%;font-size:20px;cursor:pointer;flex:none">×</button></div>
+<div style="display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(0,1fr);gap:8px;font-size:11px;font-weight:700;color:#5f6b62;text-transform:uppercase;letter-spacing:.05em;padding:4px 6px"><span>{{dr.h1}}</span><span>{{dr.h2}}</span><span style="text-align:right">{{dr.h3}}</span></div>
+<sc-for list="{{dr.rows}}" as="r"><div onClick="{{r.open}}" style="display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.4fr) minmax(0,1fr);gap:8px;font-size:14px;padding:10px 6px;border-top:1px solid #ece8da;cursor:pointer;border-radius:6px" style-hover="background:rgba(31,92,61,.06)"><span style="font-weight:700">{{r.a}}</span><span style="color:#5f6b62">{{r.b}}</span><span style="text-align:right;font-weight:700;color:{{r.cc}}">{{r.c}}</span></div></sc-for>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{tipShow}}" hint-placeholder-val="{{ false }}">
+<div style="position:fixed;left:{{tipX}}px;top:{{tipY}}px;z-index:60;pointer-events:none;background:#1d2b22;color:#fff;border-radius:10px;padding:10px 12px;min-width:170px;box-shadow:0 8px 24px rgba(0,0,0,.18);display:flex;flex-direction:column;gap:5px">
+<div style="font-size:12px;font-weight:700;color:#cfdccd">{{tipTitle}}</div>
+<sc-for list="{{tipLines}}" as="t"><div style="display:flex;justify-content:space-between;gap:14px;font-size:13px"><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:{{t.c}}"></span>{{t.l}}</span><span style="font-weight:700">{{t.v}}</span></div></sc-for>
+</div>
+</sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;defaultView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;dashboard&quot;,&quot;entry&quot;,&quot;fixed&quot;,&quot;acc&quot;],&quot;default&quot;:&quot;dashboard&quot;,&quot;tsType&quot;:&quot;'dashboard'|'entry'|'fixed'|'acc'&quot;},&quot;currencyShort&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const GR=[{k:'g1',n:'8mm+',s:'Super Bold'},{k:'g2',n:'7.5–8mm',s:'Bold'},{k:'g3',n:'7–8mm',s:'Standard'},{k:'g4',n:'7–7.5mm',s:''},{k:'g5',n:'6–7mm',s:''},{k:'g6',n:'Rejection / Pan',s:''},{k:'g7',n:'Mixed Bulk',s:'Ungraded'}];
+const EXP=[{k:'freight',n:'Transportation / Freight',c:'#1f5c3d'},{k:'toll',n:'Toll',c:'#4f8a63'},{k:'fuel',n:'Fuel',c:'#9fb89a'},{k:'food',n:'Food',c:'#d9a25a'},{k:'travel',n:'Travel & Stay',c:'#b5713a'},{k:'labour',n:'Salary / Labour',c:'#6c7d5a'},{k:'packing',n:'Packing (sacks)',c:'#c9c2a5'},{k:'grading',n:'Grading / Sorting',c:'#3d4a42'},{k:'other',n:'Other',c:'#a79f8a'}];
+const FIX=[{k:'accounting',n:'Accounting & taxation',s:'Accounting'},{k:'rent',n:'Room / storage rent',s:'Rent'},{k:'software',n:'Software subscription',s:'Software'},{k:'consulting',n:'Consulting fees',s:'Consulting'},{k:'other',n:'Other fixed costs',s:'Other'}];
+const KEY='asa-traders-v1';
+const C_P='#2e7d4a',C_L='#c2412d',C_A='#d4952a';
+const num=v=>{const n=parseFloat(v);return isFinite(n)?n:0};
+const inr=v=>{v=Math.round(num(v));return (v<0?'−':'')+'₹'+Math.abs(v).toLocaleString('en-IN')};
+const sh=v=>{const a=Math.abs(v),s=v<0?'−':'';if(a>=1e7)return s+'₹'+(a/1e7).toFixed(2)+'Cr';if(a>=1e5)return s+'₹'+(a/1e5).toFixed(2)+'L';if(a>=1e3)return s+'₹'+(a/1e3).toFixed(1)+'K';return s+'₹'+Math.round(a)};
+const kgf=v=>(Math.round(num(v)*100)/100).toLocaleString('en-IN')+' kg';
+const pad=n=>String(n).padStart(2,'0');
+const ymd=t=>t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate());
+const today=()=>ymd(new Date());
+const addDays=(d,n)=>{const t=new Date(d+'T00:00:00');t.setDate(t.getDate()+n);return ymd(t)};
+const uid=()=>Math.random().toString(36).slice(2,9);
+const mLabel=(m,long)=>{if(!m)return '';const [y,mo]=m.split('-');return new Date(+y,+mo-1,1).toLocaleString('en-IN',{month:long?'long':'short',year:'numeric'})};
+const dLabel=d=>d?new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}):'—';
+const nextMonth=m=>{const [y,mo]=m.split('-').map(Number);return mo===12?(y+1)+'-01':y+'-'+pad(mo+1)};
+const pctColor=v=>v>=0?C_P:C_L;
+const pillBg=k=>k.completed?'#e1efe4':'#fbefd6',pillFg=k=>k.completed?'#22663b':'#8a5a0b';
+
+function calc(c){
+  const g={};let pKg=0,pAmt=0,sKg=0,sAmt=0;
+  GR.forEach(G=>{const p=(c.purchase||{})[G.k]||{};const kg=num(p.kg),rate=num(p.rate);let skg=0,samt=0;
+    (c.sales||[]).forEach(s=>{const l=(s.lines||{})[G.k]||{};skg+=num(l.kg);samt+=num(l.kg)*num(l.rate)});
+    g[G.k]={kg,rate,amt:kg*rate,skg,samt,rem:kg-skg};pKg+=kg;pAmt+=kg*rate;sKg+=skg;sAmt+=samt});
+  const expByCat={};let exp=0;(c.expenses||[]).forEach(e=>{const a=num(e.amount);exp+=a;expByCat[e.cat]=(expByCat[e.cat]||0)+a});
+  const completed=pKg>0&&GR.every(G=>g[G.k].rem<=0.0001);
+  const cogs=GR.reduce((a,G)=>{const x=g[G.k];return a+(x.kg?x.skg*x.amt/x.kg:0)},0);
+  const expShare=pKg?exp*Math.min(1,sKg/pKg):exp;
+  const profit=completed?sAmt-pAmt-exp:sAmt-cogs-expShare;
+  return {g,pKg,pAmt,sKg,sAmt,exp,expByCat,profit,stockCost:pAmt-cogs,rem:Math.max(0,pKg-sKg),completed,status:completed?'Completed':'In Progress',perKg:pKg?profit/pKg:0,margin:sAmt?profit/sAmt*100:0,month:(c.date||'').slice(0,7)};
+}
+const monthsOf=data=>{const s=new Set();data.consignments.forEach(c=>c.date&&s.add(c.date.slice(0,7)));Object.keys(data.fixed||{}).forEach(k=>s.add(k));return [...s].sort()};
+const fixedTotal=(data,m)=>{const f=(data.fixed||{})[m]||{};return FIX.reduce((a,F)=>a+num(f[F.k]),0)};
+const IN_CATS=['Capital introduced','Loan received','Interest received','Commission received','Other income'];
+const OUT_CATS=['Office expenses','Electricity & phone','Bank charges','Drawings','Loan repayment','Advance paid','Other expense'];
+const ACC_TYPES=['Bank','Cash','UPI / Wallet','Other'];
+const SEED_MANUAL=()=>[{id:uid(),date:'2026-07-01',type:'in',cat:'Capital introduced',desc:'Owner capital for season',amount:'300000',acc:'sbi'},{id:uid(),date:'2026-08-14',type:'out',cat:'Drawings',desc:'Personal withdrawal',amount:'40000',acc:'cash'},{id:uid(),date:'2026-09-10',type:'out',cat:'Bank charges',desc:'RTGS charges',amount:'850',acc:'fed'},{id:uid(),date:'2026-09-30',type:'in',cat:'Interest received',desc:'Savings interest',amount:'2100',acc:'fed'}];
+function migrate(d){d={...d};if(!Array.isArray(d.manual))d.manual=[];
+  if(Array.isArray(d.accounts))d.accounts=d.accounts.map(a=>a.id==='cash'&&a.opening==='50000'?{...a,opening:'250000'}:a.id==='sbi'&&a.opening==='2000000'?{...a,opening:'5000000'}:a);
+  if(!Array.isArray(d.accounts)){d.accounts=[{id:'cash',name:'Cash in hand',type:'Cash',opening:'250000'},{id:'sbi',name:'SBI Current A/c',type:'Bank',opening:'5000000'},{id:'fed',name:'Federal Bank A/c',type:'Bank',opening:'500000'}];
+    d.consignments=d.consignments.map(c=>({...c,purAcc:c.purAcc||'sbi',expAcc:c.expAcc||'cash',sales:(c.sales||[]).map(s=>({...s,acc:s.acc||'sbi'}))}));
+    const fx={};Object.entries(d.fixed||{}).forEach(([m,f])=>{fx[m]={...f,accs:f.accs||{accounting:'fed',rent:'sbi',software:'fed',consulting:'fed',other:'cash'}}});d.fixed=fx}
+  return d}
+function ledger(data){const A=data.accounts||[];const res=a=>A.some(x=>x.id===a)?a:(A[0]||{}).id;const rows=[];
+  data.consignments.forEach(c=>{const k=calc(c);
+    if(k.pAmt>0)rows.push({id:'p-'+c.id,date:c.date,type:'out',cat:'Cardamom purchase',desc:(c.supplier||'Supplier')+' · '+kgf(k.pKg),ref:c.id,amount:k.pAmt,acc:res(c.purAcc),auto:'pur',cid:c.id});
+    (c.expenses||[]).forEach(e=>{if(num(e.amount)>0)rows.push({id:'e-'+e.id,date:c.date,type:'out',cat:(EXP.find(x=>x.k===e.cat)||{}).n||'Expense',desc:e.note||'',ref:c.id,amount:num(e.amount),acc:res(e.acc||c.expAcc),auto:'exp',cid:c.id,eid:e.id})});
+    (c.sales||[]).forEach((s,si)=>{let q=0,a=0;GR.forEach(G=>{const l=(s.lines||{})[G.k]||{};q+=num(l.kg);a+=num(l.kg)*num(l.rate)});if(a>0)rows.push({id:'s-'+s.id,date:s.date||c.date,type:'in',cat:'Cardamom sale',desc:(s.buyer||'Buyer')+' · '+kgf(q),ref:c.id,amount:a,acc:res(s.acc),auto:'sale',cid:c.id,sid:s.id,si})})});
+  Object.entries(data.fixed||{}).forEach(([m,f])=>{const [y,mo]=m.split('-').map(Number);const dt=ymd(new Date(y,mo,0));FIX.forEach(F=>{const v=num(f[F.k]);if(v>0)rows.push({id:'f-'+m+F.k,date:dt,type:'out',cat:F.n,desc:'Fixed cost · '+mLabel(m,true),ref:'Fixed',amount:v,acc:res((f.accs||{})[F.k]),auto:'fix',m,fk:F.k})})});
+  (data.manual||[]).forEach(x=>rows.push({id:'m-'+x.id,date:x.date,type:x.type,cat:x.cat,desc:x.desc||'',ref:'Manual',amount:num(x.amount),acc:res(x.acc),mid:x.id}));
+  return rows.sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:0)}
+
+function seed(){
+  const base={g1:3450,g2:3250,g3:3100,g4:2950,g5:2800,g6:1600,g7:2600};
+  const MK=[{g1:150,g2:180,g3:200,g4:120,g5:150,g6:-80,g7:100},{g1:120,g2:100,g3:160,g4:60,g5:-40,g6:50,g7:140}];
+  const MIX=[{g1:100,g3:250,g5:150},{g1:80,g2:120,g3:180,g5:90,g6:30},{g2:150,g3:200,g4:100,g7:50},{g1:60,g3:220,g5:140,g6:40,g7:40}];
+  const SUP=['Kumily Spices Co.','Periyar Estates','Vandanmedu Growers','Anakkara Farms'];
+  const BUY=['Malabar Traders, Calicut','Kannur Spice House','Thalassery Hill Produce'];
+  const D=[['2026-07-04',0,0,0],['2026-07-13',1,1,40],['2026-07-24',2,0,-30],['2026-08-02',3,1,60],['2026-08-10',0,0,100],['2026-08-19',1,1,20],['2026-08-28',2,1,-50],['2026-09-05',3,0,80],['2026-09-15',1,0,120],['2026-09-26',0,1,150]];
+  const consignments=D.map(([date,mix,mk,shift],i)=>{
+    const id='C-'+pad3(i+1);const purchase={},l1={},l2={};
+    Object.entries(MIX[mix]).forEach(([k,kg])=>{const rate=base[k]+shift;purchase[k]={kg:String(kg),rate:String(rate)};const sr=rate+MK[mk][k];const a=i===0?kg:Math.round(kg*0.6/10)*10;l1[k]={kg:String(a),rate:String(sr)};if(kg-a>0)l2[k]={kg:String(kg-a),rate:String(sr+(i%2?20:-10))}});
+    if(i===8)delete l2.g6;
+    const ex=i===0?[['freight',2850,'Kumily → Calicut lorry'],['travel',2250,'Lodge, 2 nights'],['fuel',5500,''],['packing',900,'Sacks'],['labour',600,'Loading']]
+      :[['freight',2600+i*40,''],['toll',420,''],['fuel',5200+(i%3)*250,''],['food',650,''],['travel',2250,''],['labour',600,'Loading & unloading'],['packing',900,'Sacks']].concat(i%3===0?[['grading',1500,'Re-grading at Kumily']]:[]);
+    const sales=[{id:uid(),buyer:BUY[i%3],date:addDays(date,3),lines:l1,acc:'sbi'}];
+    if(i!==0&&i!==9&&Object.keys(l2).length)sales.push({id:uid(),buyer:BUY[(i+1)%3],date:addDays(date,6),lines:l2,acc:'fed'});
+    return {id,date,supplier:SUP[i%4],notes:i===0?'Sample consignment from brief':'',purchase,expenses:ex.map(([cat,amount,note])=>({id:uid(),cat,amount:String(amount),note})),sales};
+  });
+  const fx=(o)=>({accounting:'8000',rent:'12000',software:'1500',consulting:'5000',other:'1500',...o});
+  return {manual:SEED_MANUAL(),consignments,fixed:{'2026-07':fx({}),'2026-08':fx({other:'3200'}),'2026-09':fx({consulting:'7500',other:'1000'})}};
+}
+function pad3(n){return String(n).padStart(3,'0')}
+
+const RCSS='body{font-family:Arial,Helvetica,sans-serif;color:#1d2b22;padding:28px;font-size:12px}h1{margin:0 0 4px;font-size:22px}h2{font-size:14px;margin:20px 0 6px}p{margin:0;color:#555}table{border-collapse:collapse;width:100%}th,td{border:1px solid #cfc9b6;padding:6px 8px;text-align:left}th{background:#eef2ea}td.n,th.n{text-align:right}';
+const SCSS='.rep{font-family:Arial,Helvetica,sans-serif;color:#1d2b22;font-size:10.5px;padding:4px;background:#fff}.rep h1{margin:0 0 4px;font-size:20px}.rep h2{font-size:13px;margin:16px 0 6px}.rep p{margin:0;color:#555}.rep table{border-collapse:collapse;width:100%}.rep tr{page-break-inside:avoid}.rep th,.rep td{border:1px solid #cfc9b6;padding:5px 6px;text-align:left}.rep th{background:#eef2ea}.rep td.n,.rep th.n{text-align:right}';
+const tbl=(h,rows)=>'<table><tr>'+h.map((x,i)=>'<th'+(i?' class="n"':'')+'>'+x+'</th>').join('')+'</tr>'+rows.map(r=>'<tr>'+r.map((x,i)=>'<td'+(i?' class="n"':'')+'>'+x+'</td>').join('')+'</tr>').join('')+'</table>';
+
+class Component extends DCLogic {
+  state={data:null,view:null,month:null,cons:'all',activeId:null,step:'purchase',saleIdx:0,detailId:null,drill:null,tip:null,fixedMonth:null,lgMonth:null,lgAcc:'all',lgType:'all',mf:null,mfEdit:null,af:null};
+  mfRef=React.createRef();
+  setRowAcc(r,v){if(r.mid)this.setData(d=>({...d,manual:d.manual.map(x=>x.id===r.mid?{...x,acc:v}:x)}));
+    else if(r.auto==='pur')this.updC(r.cid,c=>{c.purAcc=v;return c});
+    else if(r.auto==='exp')this.updC(r.cid,c=>{c.expenses=c.expenses.map(e=>e.id===r.eid?{...e,acc:v}:e);return c});
+    else if(r.auto==='sale')this.updC(r.cid,c=>{c.sales=c.sales.map(s=>s.id===r.sid?{...s,acc:v}:s);return c});
+    else if(r.auto==='fix')this.setData(d=>{const f={...((d.fixed||{})[r.m]||{})};f.accs={...(f.accs||{}),[r.fk]:v};return {...d,fixed:{...d.fixed,[r.m]:f}}})}
+  editRow(r){if(r.mid){const x=this.state.data.manual.find(y=>y.id===r.mid);this.setState({mf:{...x},mfEdit:x.id});const el=this.mfRef.current;if(el)window.scrollTo({top:el.getBoundingClientRect().top+window.scrollY-90,behavior:'smooth'})}
+    else if(r.auto==='fix'){this.setState({view:'fixed',fixedMonth:r.m});window.scrollTo(0,0)}
+    else this.edit(r.cid,r.auto==='pur'?'purchase':r.auto==='exp'?'expenses':'sales',r.si||0)}
+  delManual(id){if(confirm('Delete this entry?'))this.setData(d=>({...d,manual:d.manual.filter(x=>x.id!==id)}))}
+  saveMf(mf){if(!(num(mf.amount)>0)){alert('Please enter an amount.');return}const id=this.state.mfEdit;
+    this.setData(d=>({...d,manual:id?d.manual.map(x=>x.id===id?{...mf,id}:x):[...(d.manual||[]),{...mf,id:uid()}]}));this.setState({mf:null,mfEdit:null})}
+  saveAf(){const a=this.state.af;if(!a||!String(a.name).trim()){alert('Please enter an account name.');return}
+    this.setData(d=>({...d,accounts:a.id?d.accounts.map(x=>x.id===a.id?{...x,name:a.name,type:a.type,opening:a.opening}:x):[...d.accounts,{id:uid(),name:a.name,type:a.type,opening:a.opening}]}));this.setState({af:null})}
+  delAf(){const a=this.state.af,d=this.state.data;if(!a||!a.id)return;if(d.accounts.length<2){alert('At least one account is required.');return}
+    if(ledger(d).some(r=>r.acc===a.id)){alert('This account has transactions. Move them to another account first.');return}
+    if(!confirm('Delete '+a.name+'?'))return;this.setData(x=>({...x,accounts:x.accounts.filter(y=>y.id!==a.id)}));this.setState({af:null,lgAcc:'all'})}
+  exportLg(kind){const g=this._lg;const body='<h1>ASA Traders — Income &amp; expense</h1><p>'+g.label+' · generated '+dLabel(today())+'</p><h2>Account balances (current)</h2>'+tbl(['Account','Opening','Income','Expense','Balance'],g.cards)
+    +'<h2>Transactions</h2>'+tbl(['Date','Particulars','Ref','Account','Income','Expense'],g.rows)+'<h2>Totals</h2>'+tbl(['Item','Amount'],[['Income',inr(g.inc)],['Expense',inr(g.out)],['Net',inr(g.inc-g.out)]]);
+    kind==='pdf'?this.pdfDownload('ASA-Traders-Income-Expense',body):this.dlXls('ASA-Traders-Income-Expense',body)}
+  componentDidMount(){let data=null;try{data=JSON.parse(localStorage.getItem(KEY))}catch(e){}if(!data||!Array.isArray(data.consignments))data=seed();data=migrate(data);
+    const last=data.consignments[data.consignments.length-1];this.setState({data,activeId:last?last.id:null})}
+  componentDidUpdate(p,s){if(this.state.data&&s.data!==this.state.data){try{localStorage.setItem(KEY,JSON.stringify(this.state.data))}catch(e){}}}
+  setData(fn){this.setState(s=>({data:fn(s.data)}))}
+  updC(id,fn){this.setData(d=>({...d,consignments:d.consignments.map(c=>c.id===id?fn(JSON.parse(JSON.stringify(c))):c)}))}
+  showTip(e,title,lines){let x=e.clientX+14,y=e.clientY+14;if(x>window.innerWidth-210)x=e.clientX-200;if(y>window.innerHeight-140)y=e.clientY-120;this.setState({tip:{x,y,title,lines}})}
+  newCons=()=>{const d=this.state.data;const max=d.consignments.reduce((m,c)=>Math.max(m,parseInt(c.id.slice(2))||0),0);const id='C-'+pad3(max+1);const t=today();
+    const lc=d.consignments[d.consignments.length-1]||{};const a0=(d.accounts[0]||{}).id;
+    const c={id,date:t,supplier:'',notes:'',purAcc:lc.purAcc||a0,expAcc:lc.expAcc||a0,purchase:{},expenses:[],sales:[{id:uid(),buyer:'',date:t,lines:{},acc:lc.purAcc||a0}]};
+    this.setState(s=>({data:{...s.data,consignments:[...s.data.consignments,c]},activeId:id,view:'entry',step:'purchase',saleIdx:0,detailId:null}));window.scrollTo(0,0)};
+  openDetail(id){this.setState({detailId:id,drill:null,tip:null})}
+  edit(id,step,saleIdx){this.setState({activeId:id,view:'entry',detailId:null,step:step||'purchase',saleIdx:saleIdx||0});window.scrollTo(0,0)}
+  pdfDownload(name,body){if(!window.html2pdf){this.printPdf(name,body);return}
+    const el=document.createElement('div');el.style.cssText='position:fixed;left:0;top:0;width:760px;background:#fff;z-index:-1;pointer-events:none';
+    el.innerHTML='<style>'+SCSS+'</style><div class="rep">'+body+'</div>';document.body.appendChild(el);
+    window.html2pdf().set({margin:[10,10,12,10],filename:name+'.pdf',image:{type:'jpeg',quality:.96},html2canvas:{scale:2,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}})
+      .from(el.querySelector('.rep')).save().then(()=>el.remove(),()=>el.remove())}
+  dlXls(name,body){const html='\ufeff<html><head><meta charset="utf-8"><style>'+RCSS+'</style></head><body>'+body+'</body></html>';const b=new Blob([html],{type:'application/vnd.ms-excel'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name+'.xls';document.body.appendChild(a);a.click();a.remove()}
+  printPdf(title,body){const f=document.createElement('iframe');f.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(f);const doc=f.contentWindow.document;doc.open();doc.write('<html><head><title>'+title+'</title><style>'+RCSS+'</style></head><body>'+body+'</body></html>');doc.close();setTimeout(()=>{f.contentWindow.focus();f.contentWindow.print();setTimeout(()=>f.remove(),1500)},300)}
+  consReport(c){const k=calc(c);
+    return '<h1>ASA Traders — Consignment '+c.id+'</h1><p>'+dLabel(c.date)+' · '+(c.supplier||'—')+' · '+k.status+'</p>'
+    +'<h2>Profit calculation</h2>'+tbl(['Item','Amount'],[['Total sales',inr(k.sAmt)],['Total purchase',inr(k.pAmt)],['Consignment expenses',inr(k.exp)],['Consignment profit',inr(k.profit)],['Profit per kg',inr(k.perKg)],['Margin',k.margin.toFixed(1)+'%']])
+    +'<h2>Purchase</h2>'+tbl(['Grade','Qty (kg)','Rate (₹/kg)','Amount'],GR.filter(G=>k.g[G.k].kg).map(G=>[G.n,k.g[G.k].kg,inr(k.g[G.k].rate),inr(k.g[G.k].amt)]).concat([['Total',k.pKg,'',inr(k.pAmt)]]))
+    +'<h2>Expenses</h2>'+tbl(['Category','Note','Amount'],(c.expenses||[]).filter(e=>num(e.amount)).map(e=>[(EXP.find(x=>x.k===e.cat)||{}).n,e.note||'',inr(e.amount)]).concat([['Total','',inr(k.exp)]]))
+    +'<h2>Sales</h2>'+tbl(['Buyer / Grade','Date','Qty (kg)','Rate (₹/kg)','Amount'],(c.sales||[]).flatMap(s=>GR.filter(G=>num((s.lines[G.k]||{}).kg)).map(G=>[(s.buyer||'—')+' · '+G.n,dLabel(s.date),num(s.lines[G.k].kg),inr(s.lines[G.k].rate),inr(num(s.lines[G.k].kg)*num(s.lines[G.k].rate))])).concat([['Total','',k.sKg,'',inr(k.sAmt)]]))
+    +'<h2>Stock left</h2>'+tbl(['Grade','Remaining (kg)'],GR.filter(G=>k.g[G.k].kg).map(G=>[G.n,k.g[G.k].rem]))}
+  monthReport(){const x=this._ctx;const f=(this.state.data.fixed||{})[x.month]||{};
+    return '<h1>ASA Traders — Monthly report</h1><p>'+mLabel(x.month,true)+' · generated '+dLabel(today())+'</p>'
+    +'<h2>Summary</h2>'+tbl(['Metric','Value'],[['Total sales',inr(x.mSales)],['Total purchase',inr(x.mPur)],['Consignment expenses',inr(x.mExp)],['Total consignment profit',inr(x.monthProfit)],['Fixed costs',inr(x.fx)],['Monthly net profit',inr(x.net)],['Consignments',x.monthCons.length],['Total kg traded',x.mKg],['Avg profit / kg',inr(x.mKg?x.monthProfit/x.mKg:0)]])
+    +'<h2>Consignments</h2>'+tbl(['ID','Date','Supplier','Kg','Purchase','Expenses','Sales','Profit','Status'],x.monthCons.map(({c,k})=>[c.id,dLabel(c.date),c.supplier||'—',k.pKg,inr(k.pAmt),inr(k.exp),inr(k.sAmt),inr(k.profit),k.status]))
+    +((x.buyers||[]).length?'<h2>Buyer-wise report</h2>'+tbl(['Buyer','Kg sold','Amount','Avg sell/kg','Avg cost/kg','Profit/kg','Profit'],x.buyers.map(b=>[b.name,b.kg,inr(b.amt),inr(b.sell),inr(b.cost),inr(b.ppk),inr(b.profit)])):'')
+    +'<h2>Fixed costs</h2>'+tbl(['Item','Amount'],FIX.map(F=>[F.n,inr(f[F.k])]).concat([['Total',inr(x.fx)]]))
+    +'<h2>Expense breakdown</h2>'+tbl(['Category','Amount'],EXP.map(E=>[E.n,inr(x.monthCons.reduce((a,{k})=>a+(k.expByCat[E.k]||0),0))]))}
+
+  renderVals(){
+    const st=this.state,data=st.data||{consignments:[],fixed:{}};
+    const view=st.view||this.props.defaultView||'dashboard';
+    const ACC=data.accounts||[];const resA=a=>ACC.some(x=>x.id===a)?a:((ACC[0]||{}).id||'');const accOpts=ACC.map(a=>({v:a.id,l:a.name}));
+    const tp=(t,l)=>e=>this.showTip(e,t,l);
+    const hideTip=()=>this.state.tip&&this.setState({tip:null});
+    const M=(this.props.currencyShort??false)?sh:inr;
+    const all=data.consignments.map(c=>({c,k:calc(c)})).sort((a,b)=>(a.c.date||'')<(b.c.date||'')?-1:1);
+    const months=monthsOf(data);const cm=[...new Set(all.map(x=>x.k.month))].filter(Boolean).sort();
+    const month=st.month&&months.includes(st.month)?st.month:(cm[cm.length-1]||months[months.length-1]||today().slice(0,7));
+    const monthCons=all.filter(x=>x.k.month===month);
+    const consSel=monthCons.some(x=>x.c.id===st.cons)?st.cons:'all';
+    const set=consSel==='all'?monthCons:monthCons.filter(x=>x.c.id===consSel);
+    const S=(arr,f)=>arr.reduce((a,x)=>a+f(x.k),0);
+    const tSales=S(set,k=>k.sAmt),tPur=S(set,k=>k.pAmt),tExp=S(set,k=>k.exp),tProf=S(set,k=>k.profit),tKg=S(set,k=>k.pKg);
+    const monthProfit=S(monthCons,k=>k.profit),fx=fixedTotal(data,month),net=monthProfit-fx;
+    this._ctx={month,monthCons,monthProfit,fx,net,mSales:S(monthCons,k=>k.sAmt),mPur:S(monthCons,k=>k.pAmt),mExp:S(monthCons,k=>k.exp),mKg:S(monthCons,k=>k.pKg)};
+    const colorOf=k=>!k.completed?C_A:k.profit>=0?C_P:C_L;
+    const open=id=>()=>this.openDetail(id);
+    // profit bars
+    const pr=set.map(x=>x.k.profit);const mx=Math.max(0,...pr),mn=Math.min(0,...pr),rg=(mx-mn)||1,zero=mx/rg*100;
+    const p1Bars=set.map(({c,k})=>{const h=Math.max(Math.abs(k.profit)/rg*100,0.8),top=k.profit>=0?zero-h:zero;
+      return {id:c.id,top,h,color:colorOf(k),lab:sh(k.profit),lt:k.profit>=0?top:top+h,lx:k.profit>=0?'translate(-50%,-125%)':'translate(-50%,25%)',open:open(c.id),
+        tip:tp(c.id+' · '+k.status,[{l:'Profit',v:inr(k.profit),c:colorOf(k)},{l:'Per kg',v:inr(k.perKg),c:'transparent'},{l:'Margin',v:k.margin.toFixed(1)+'%',c:'transparent'}])}});
+    const gMax=Math.max(1,...set.flatMap(x=>[x.k.sAmt,x.k.pAmt,x.k.exp]));
+    const g2Bars=set.map(({c,k})=>({id:c.id,sH:k.sAmt/gMax*100,pH:k.pAmt/gMax*100,eH:k.exp/gMax*100,open:open(c.id),
+      tip:tp(c.id,[{l:'Sales',v:inr(k.sAmt),c:'#1f5c3d'},{l:'Purchase',v:inr(k.pAmt),c:'#9fb89a'},{l:'Expenses',v:inr(k.exp),c:'#d9a25a'}])}));
+    // trend
+    const tr=months.map(m=>{const cs=all.filter(x=>x.k.month===m);const p=S(cs,k=>k.profit),f=fixedTotal(data,m);return {m,s:S(cs,k=>k.sAmt),p,f,n:p-f}});
+    const sMax=Math.max(1,...tr.map(t=>t.s)),tMx=Math.max(0,...tr.flatMap(t=>[t.p,t.n])),tMn=Math.min(0,...tr.flatMap(t=>[t.p,t.n])),tRg=(tMx-tMn)||1;
+    const ty=v=>8+(tMx-v)/tRg*80,n=tr.length||1,tx=i=>(i+.5)/n*100;
+    const trCols=tr.map((t,i)=>({l:mLabel(t.m),h:t.s/sMax*100,bg:t.m===month?'rgba(31,92,61,.08)':'transparent',pick:()=>this.setState({month:t.m,cons:'all'}),
+      tip:tp(mLabel(t.m,true),[{l:'Sales',v:inr(t.s),c:'#cfdccd'},{l:'Consignment profit',v:inr(t.p),c:C_P},{l:'Fixed costs',v:inr(t.f),c:C_L},{l:'Net profit',v:inr(t.n),c:'#1d2b22'}])}));
+    const trDots=tr.flatMap((t,i)=>[{x:tx(i),y:ty(t.p),c:C_P},{x:tx(i),y:ty(t.n),c:t.n>=0?'#1d2b22':C_L}]);
+    const ln=(pts,stroke,dash)=>React.createElement('polyline',{points:pts,fill:'none',stroke,strokeWidth:2.5,...(dash?{strokeDasharray:dash}:{}),vectorEffect:'non-scaling-stroke',strokeLinejoin:'round'});
+    const trendSvg=React.createElement('svg',{viewBox:'0 0 100 100',preserveAspectRatio:'none',style:{position:'absolute',inset:0,width:'100%',height:'100%',overflow:'visible',pointerEvents:'none'}},
+      React.createElement('line',{x1:0,x2:100,y1:ty(0),y2:ty(0),stroke:'#1d2b22',strokeOpacity:.3,strokeDasharray:'2 3',vectorEffect:'non-scaling-stroke'}),
+      ln(tr.map((t,i)=>tx(i)+','+ty(t.p)).join(' '),C_P),ln(tr.map((t,i)=>tx(i)+','+ty(t.n)).join(' '),'#1d2b22','5 4'));
+    // waterfall
+    const fxm=(data.fixed||{})[month]||{};const steps=[{l:'Cons. profit',a:0,b:monthProfit,t:1}];let run=monthProfit;
+    FIX.forEach(F=>{const v=num(fxm[F.k]);if(v){steps.push({l:F.s,a:run,b:run-v,v,full:F.n});run-=v}});steps.push({l:'Net profit',a:0,b:run,t:1});
+    const lv=steps.flatMap(s=>[s.a,s.b]),wMx=Math.max(0,...lv),wMn=Math.min(0,...lv),wRg=(wMx-wMn)||1;
+    const wfBars=steps.map(s=>{const color=s.t?(s.b>=0?(s.l==='Net profit'?'#1f5c3d':C_P):C_L):'#d98a76';
+      return {l:s.l,top:(wMx-Math.max(s.a,s.b))/wRg*100,h:Math.max(Math.abs(s.a-s.b)/wRg*100,.8),color,lab:s.t?sh(s.b):'−'+sh(s.v).slice(1),
+        tip:tp(s.full||s.l,[{l:s.t?'Amount':'Deducted',v:s.t?inr(s.b):inr(-s.v),c:color},...(s.t?[]:[{l:'Running total',v:inr(s.b),c:'transparent'}])])}});
+    // grade margin
+    const gm=GR.map(G=>{let skg=0,samt=0,cost=0,alloc=0;const rows=[];set.forEach(({c,k})=>{const g=k.g[G.k];if(g.skg>0){const avg=g.kg?g.amt/g.kg:0,epk=k.pKg?k.exp/k.pKg:0;skg+=g.skg;samt+=g.samt;cost+=g.skg*avg;alloc+=g.skg*epk;
+      const ppk=g.samt/g.skg-avg-epk;rows.push({a:c.id,b:kgf(g.skg)+' · buy '+inr(avg)+' → sell '+inr(g.samt/g.skg),c:inr(ppk)+'/kg',cc:pctColor(ppk),open:open(c.id)})}});
+      return skg>0?{G,skg,ppk:(samt-cost-alloc)/skg,buy:cost/skg,sell:samt/skg,epk:alloc/skg,rows}:null}).filter(Boolean);
+    const gMx=Math.max(0,...gm.map(g=>g.ppk)),gMn=Math.min(0,...gm.map(g=>g.ppk)),gRg=(gMx-gMn)||1,gmZero=-gMn/gRg*100;
+    const gmRows=gm.map(g=>{const w=Math.abs(g.ppk)/gRg*100,color=pctColor(g.ppk);return {name:g.G.n,left:g.ppk>=0?gmZero:gmZero-w,w,color,val:inr(g.ppk),
+      open:()=>this.setState({drill:{title:g.G.n+' · grade margin',sub:'Profit per kg by consignment, after allocated expenses',h1:'Consignment',h2:'Sold · rates',h3:'Profit/kg',rows:g.rows},tip:null}),
+      tip:tp(g.G.n+(g.G.s?' ('+g.G.s+')':''),[{l:'Sold',v:kgf(g.skg),c:'transparent'},{l:'Avg buy',v:inr(g.buy),c:'#9fb89a'},{l:'Avg sell',v:inr(g.sell),c:'#1f5c3d'},{l:'Expense / kg',v:inr(g.epk),c:'#d9a25a'},{l:'Profit / kg',v:inr(g.ppk),c:color}])}});
+    // expenses donut
+    const cats=EXP.map(E=>({E,v:S(set,k=>k.expByCat[E.k]||0)})).filter(x=>x.v>0);const eTot=cats.reduce((a,x)=>a+x.v,0)||1;
+    let acc=0;const segs=cats.map(x=>{const from=acc;acc+=x.v/eTot*100;return {...x,from,to:acc}});
+    const donutBg=segs.length?'conic-gradient('+segs.map(s=>s.E.c+' '+s.from+'% '+s.to+'%').join(',')+')':'#ece8da';
+    const drillCat=E=>this.setState({tip:null,drill:{title:E.n,sub:'Entries in '+(consSel==='all'?mLabel(month,true):consSel),h1:'Consignment',h2:'Note',h3:'Amount',
+      rows:set.flatMap(({c})=>(c.expenses||[]).filter(e=>e.cat===E.k&&num(e.amount)).map(e=>({a:c.id,b:e.note||'—',c:inr(e.amount),cc:'#1d2b22',open:open(c.id)})))}});
+    const segAt=e=>{const r=e.currentTarget.getBoundingClientRect();const dx=e.clientX-r.left-r.width/2,dy=e.clientY-r.top-r.height/2;if(Math.hypot(dx,dy)<r.width/2-36)return null;
+      let a=Math.atan2(dx,-dy)*180/Math.PI;if(a<0)a+=360;const p=a/3.6;return segs.find(s=>p>=s.from&&p<s.to)};
+    const donutMove=e=>{const s=segAt(e);if(!s)return hideTip();this.showTip(e,s.E.n,[{l:'Amount',v:inr(s.v),c:s.E.c},{l:'Share',v:(s.v/eTot*100).toFixed(1)+'%',c:'transparent'}])};
+    const donutClick=e=>{const s=segAt(e);if(s)drillCat(s.E)};
+    const expLegend=segs.map(s=>({c:s.E.c,n:s.E.n,v:inr(s.v),p:Math.round(s.v/eTot*100)+'%',open:()=>drillCat(s.E)}));
+    // stock
+    const inprog=set.filter(x=>!x.k.completed&&x.k.pKg>0);
+    const stk=GR.map(G=>{const rem=inprog.reduce((a,x)=>a+Math.max(0,x.k.g[G.k].rem),0);const ids=inprog.filter(x=>x.k.g[G.k].rem>0).map(x=>x.c.id);return rem>0?{G,rem,ids}:null}).filter(Boolean);
+    const stMx=Math.max(1,...stk.map(s=>s.rem));
+    const stockRows=stk.map(s=>({name:s.G.n,w:s.rem/stMx*100,v:kgf(s.rem),open:open(s.ids[0]),tip:tp(s.G.n+' · unsold',[{l:'Remaining',v:kgf(s.rem),c:C_A},{l:'In',v:s.ids.join(', '),c:'transparent'}])}));
+    const listRows=monthCons.map(({c,k})=>({id:c.id,status:k.status,sBg:pillBg(k),sFg:pillFg(k),profit:inr(k.profit),pc:colorOf(k),date:dLabel(c.date),supplier:c.supplier||'—',kg:kgf(k.pKg),perKg:inr(k.perKg),open:open(c.id)}));
+    const nCompleted=monthCons.filter(x=>x.k.completed).length;
+    const avgCost=tKg?(tPur+tExp)/tKg:0;const bmap={};
+    set.forEach(({c})=>(c.sales||[]).forEach(s=>{let q=0,a=0;GR.forEach(G=>{const l=(s.lines||{})[G.k]||{};q+=num(l.kg);a+=num(l.kg)*num(l.rate)});if(q<=0)return;
+      const nm=(s.buyer||'').trim()||'Unnamed buyer';const b=bmap[nm]||(bmap[nm]={name:nm,kg:0,amt:0,rows:[]});b.kg+=q;b.amt+=a;
+      b.rows.push({a:c.id,b:dLabel(s.date)+' · '+kgf(q)+' @ '+inr(a/q),c:inr(a),cc:'#1d2b22',open:open(c.id)})}));
+    const bl=Object.values(bmap).map(b=>{const sell=b.amt/b.kg,ppk=sell-avgCost;return {...b,sell,cost:avgCost,ppk,profit:ppk*b.kg}}).sort((x,y)=>y.amt-x.amt);
+    this._ctx.buyers=bl;const bkg=bl.reduce((a,b)=>a+b.kg,0),bamt=bl.reduce((a,b)=>a+b.amt,0),bprof=bl.reduce((a,b)=>a+b.profit,0);
+    const buyerRows=bl.map(b=>({name:b.name,deals:b.rows.length+' sale'+(b.rows.length>1?'s':''),kg:kgf(b.kg),amt:inr(b.amt),sell:inr(b.sell),cost:inr(b.cost),ppk:inr(b.ppk),profit:inr(b.profit),pc:pctColor(b.ppk),
+      open:()=>this.setState({tip:null,drill:{title:b.name,sub:'Avg sell '+inr(b.sell)+'/kg − avg cost '+inr(avgCost)+'/kg = '+inr(b.ppk)+'/kg',h1:'Consignment',h2:'Date · qty @ rate',h3:'Amount',rows:b.rows}})}));
+    const buyerTot={kg:kgf(bkg),amt:inr(bamt),sell:inr(bkg?bamt/bkg:0),cost:inr(avgCost),ppk:inr(bkg?bprof/bkg:0),profit:inr(bprof),pc:pctColor(bprof)};
+
+    // entry
+    const ac=data.consignments.find(c=>c.id===st.activeId)||data.consignments[data.consignments.length-1];
+    let entry={hasActive:false,noActive:true,sim:{rows:[]},a:{},steps:[],purRows:[],expCats:[],saleTabs:[],sale:{},salRows:[],sm:{}};
+    if(ac){const k=calc(ac),id=ac.id;const U=fn=>this.updC(id,fn);
+      const r2=x=>String(Math.round(x*100)/100);
+      const setP=(fn)=>U(c=>{const p={...(c.purchase[fn.k]||{})};fn.f(p);c.purchase[fn.k]=p;return c});
+      const purRows=GR.map(G=>{const p=ac.purchase[G.k]||{};const amtMode=p.mode==='amt';const a=k.g[G.k].amt;
+        return {name:G.n,sub:G.s,kg:p.kg||'',rate:amtMode?(num(p.kg)?r2(num(p.amt)/num(p.kg)):''):(p.rate||''),
+          amtIn:amtMode?(p.amt||''):(a?r2(a):''),rateBg:amtMode&&num(p.amt)?'#f1eee3':'#fff',
+          onKg:e=>{const v=e.target.value;setP({k:G.k,f:p=>{p.kg=v;if(p.mode==='amt')p.rate=num(v)?r2(num(p.amt)/num(v)):''}})},
+          onRate:e=>{const v=e.target.value;setP({k:G.k,f:p=>{p.rate=v;p.mode='rate';delete p.amt}})},
+          onAmt:e=>{const v=e.target.value;setP({k:G.k,f:p=>{p.amt=v;p.mode='amt';p.rate=num(p.kg)?r2(num(v)/num(p.kg)):''}})}}});
+      const setE=(eid,f,v)=>U(c=>{c.expenses=c.expenses.map(x=>x.id===eid?{...x,[f]:v}:x);return c});
+      const addE=(cat,o)=>U(c=>{c.expenses.push({id:uid(),cat,amount:'',note:'',...o});return c});
+      const expCats=EXP.map(E=>{const en=ac.expenses.filter(x=>x.cat===E.k);
+        const entries=en.length?en.map(x=>({amount:x.amount,note:x.note,vis:'visible',onAmt:e=>setE(x.id,'amount',e.target.value),onNote:e=>setE(x.id,'note',e.target.value),onDel:()=>U(c=>{c.expenses=c.expenses.filter(y=>y.id!==x.id);return c})}))
+          :[{amount:'',note:'',vis:'hidden',onAmt:e=>addE(E.k,{amount:e.target.value}),onNote:e=>addE(E.k,{note:e.target.value}),onDel:()=>{}}];
+        return {name:E.n,color:E.c,total:inr(k.expByCat[E.k]||0),entries,hasReal:en.length>0,notePh:E.k==='other'?'Description (required)':'Note (optional)',add:()=>addE(E.k,{})}});
+      const sales=ac.sales.length?ac.sales:[{id:'tmp',buyer:'',date:today(),lines:{}}];const si=Math.min(st.saleIdx,sales.length-1),sale=sales[si];
+      const setS=fn=>U(c=>{if(!c.sales.length)c.sales.push({id:uid(),buyer:'',date:today(),lines:{}});fn(c.sales[si]);return c});
+      let anyOver=false,sKgThis=0,sAmtThis=0;
+      const salRows=GR.map(G=>{const l=(sale.lines||{})[G.k]||{};const q=num(l.kg),avail=k.g[G.k].kg-(k.g[G.k].skg-q),after=avail-q,over=q>avail+1e-9;if(over)anyOver=true;sKgThis+=q;sAmtThis+=q*num(l.rate);
+        const am=l.mode==='amt',sa=q*num(l.rate);
+        return {name:G.n,kg:l.kg||'',rate:am?(q?r2(num(l.amt)/q):''):(l.rate||''),amtIn:am?(l.amt||''):(sa?r2(sa):''),rateBg:am&&num(l.amt)?'#f1eee3':'#fff',
+          onAmt:e=>{const v=e.target.value;setS(s=>{const x={...(s.lines[G.k]||{})};x.amt=v;x.mode='amt';x.rate=num(x.kg)?r2(num(v)/num(x.kg)):'';s.lines[G.k]=x})},over,warn:'Exceeds purchased stock by '+kgf(q-avail),bg:over?'#fbe9e4':'transparent',bd:over?'#c2412d':'#d9d4c3',op:k.g[G.k].kg||q?1:.5,
+          rem:k.g[G.k].kg?(over?'Only '+kgf(avail)+' available':kgf(after)+' left after this'):'Not purchased',remC:over?'#b0391f':after>0?'#8a5a0b':'#5f6b62',
+          onKg:e=>{const v=e.target.value;setS(s=>{const x={...(s.lines[G.k]||{}),kg:v};if(x.mode==='amt')x.rate=num(v)?r2(num(x.amt)/num(v)):'';s.lines[G.k]=x})},
+          onRate:e=>{const v=e.target.value;setS(s=>{const x={...(s.lines[G.k]||{}),rate:v,mode:'rate'};delete x.amt;s.lines[G.k]=x})}}});
+      const simS=(st.sim||{})[id]||{};const epk=k.pKg?k.exp/k.pKg:0;let projRem=0,remKgAll=0;
+      const setSim=(gk,v)=>this.setState(s=>({sim:{...(s.sim||{}),[id]:{...((s.sim||{})[id]||{}),[gk]:v}}}));
+      const simRows=GR.filter(G=>k.g[G.k].kg>0).map(G=>{const g=k.g[G.k];const buy=g.amt/g.kg,be=buy+epk,rem=Math.max(0,g.rem);
+        const cur=num(((sale.lines||{})[G.k]||{}).rate);const raw=simS[G.k]!=null?simS[G.k]:(cur?String(cur):String(Math.ceil(be)));const price=num(raw);
+        const ppk=price-be;const st3=Math.abs(ppk)<1?'be':ppk>0?'p':'l';projRem+=rem*price;remKgAll+=rem;
+        const col=st3==='be'?C_A:st3==='p'?C_P:C_L;
+        return {name:G.n,rem:rem>0?kgf(rem)+' left':'Sold out',buy:inr(buy),epk:inr(epk),be:inr(be),price:raw,min:String(Math.floor(be*0.9/10)*10),max:String(Math.ceil(be*1.12/10)*10),
+          chip:st3==='be'?'Break-even':st3==='p'?'Profit':'Loss',chipBg:st3==='be'?'#fbefd6':st3==='p'?'#e1efe4':'#fbe9e4',chipFg:st3==='be'?'#8a5a0b':st3==='p'?'#22663b':'#a1351c',col,
+          ppk:(ppk>0?'+':'')+inr(ppk),remProfit:(ppk>0?'+':'')+inr(ppk*rem),remLabel:'On '+kgf(rem)+' left',
+          onPrice:e=>setSim(G.k,e.target.value),
+          apply:()=>{setS(s=>{s.lines[G.k]={...(s.lines[G.k]||{}),rate:String(price),mode:'rate'};delete s.lines[G.k].amt})}}});
+      const projFinal=k.sAmt+projRem-k.pAmt-k.exp;const needAvg=remKgAll?(k.pAmt+k.exp-k.sAmt)/remKgAll:0;
+      const sim={rows:simRows,epk:inr(epk),proj:inr(projFinal),projC:pctColor(projFinal),need:remKgAll?inr(Math.max(0,needAvg)):'—',
+        needNote:remKgAll?'Average price needed on the remaining '+kgf(remKgAll)+' to break even on the whole consignment':'All stock sold. Prices here are for reference only',
+        reset:()=>this.setState(s=>({sim:{...(s.sim||{}),[id]:{}}}))};
+      const step=st.step;const stepDef=[['purchase','Purchase',inr(k.pAmt)],['expenses','Expenses',inr(k.exp)],['sales','Sales',inr(k.sAmt)]];
+      entry={hasActive:true,noActive:false,sim,
+        purAcc:resA(ac.purAcc),onPurAcc:e=>{const v=e.target.value;U(c=>{c.purAcc=v;return c})},
+        expAcc:resA(ac.expAcc),onExpAcc:e=>{const v=e.target.value;U(c=>{c.expAcc=v;c.expenses=c.expenses.map(x=>{const y={...x};delete y.acc;return y});return c})},
+        a:{id,date:ac.date,supplier:ac.supplier,notes:ac.notes,status:k.status,sBg:pillBg(k),sFg:pillFg(k),
+          onDate:e=>{const v=e.target.value;U(c=>{c.date=v;return c})},onSupplier:e=>{const v=e.target.value;U(c=>{c.supplier=v;return c})},onNotes:e=>{const v=e.target.value;U(c=>{c.notes=v;return c})}},
+        steps:stepDef.map(([key,l,v],i)=>({n:i+1,l,v,bg:step===key?'#1d2b22':'#fffdf7',fg:step===key?'#f4f2ea':'#1d2b22',bd:step===key?'#1d2b22':'#e4e0d2',go:()=>this.setState({step:key})})),
+        isPur:step==='purchase',isExp:step==='expenses',isSal:step==='sales',purRows,purTotKg:kgf(k.pKg),purTotAmt:inr(k.pAmt),expCats,expTot:inr(k.exp),
+        saleTabs:sales.map((s,i)=>({l:s.buyer||'Buyer '+(i+1),bg:i===si?'#1f5c3d':'#fffdf7',fg:i===si?'#fff':'#1d2b22',bd:i===si?'#1f5c3d':'#d9d4c3',go:()=>this.setState({saleIdx:i})})),
+        addSale:()=>{U(c=>{c.sales.push({id:uid(),buyer:'',date:today(),lines:{}});return c});this.setState({saleIdx:sales.length})},
+        sale:{buyer:sale.buyer,date:sale.date,acc:resA(sale.acc),onAcc:e=>{const v=e.target.value;setS(s=>{s.acc=v})},vis:sales.length>1?'visible':'hidden',onBuyer:e=>{const v=e.target.value;setS(s=>{s.buyer=v})},onDate:e=>{const v=e.target.value;setS(s=>{s.date=v})},
+          del:()=>{if(sales.length<2)return;U(c=>{c.sales.splice(si,1);return c});this.setState({saleIdx:0})}},
+        salRows,salTotKg:kgf(sKgThis),salTotAmt:inr(sAmtThis),salAllKg:kgf(k.sKg),salAllAmt:inr(k.sAmt),
+        sm:{sales:inr(k.sAmt),pur:inr(k.pAmt),exp:inr(k.exp),profit:inr(k.profit),pc:!k.completed?'#f0c46e':k.profit>=0?'#8fd3a5':'#f19a86',perKg:inr(k.perKg),margin:k.margin.toFixed(1)+'%',stock:kgf(k.rem),
+          label:k.completed?'Final profit':'Running profit',note:anyOver?'⚠ A sale exceeds purchased stock — please check quantities.':k.completed?'All stock sold. This consignment is completed and its profit is final.':'In Progress: running profit counts only stock sold so far (sold kg × buy rate, plus a proportional share of expenses). Unsold stock at cost: '+inr(k.stockCost)+'. Profit becomes final once everything is sold.'},
+        nextLabel:step==='purchase'?'Next: Expenses →':step==='expenses'?'Next: Sales →':'View full summary',
+        nextStep:()=>{if(step==='purchase')this.setState({step:'expenses'});else if(step==='expenses')this.setState({step:'sales'});else this.openDetail(id);window.scrollTo(0,0)},
+        openActiveDetail:()=>this.openDetail(id),
+        delCons:()=>{if(!confirm('Delete '+id+'? This cannot be undone.'))return;this.setState(s=>{const cs=s.data.consignments.filter(c=>c.id!==id);return {data:{...s.data,consignments:cs},activeId:cs.length?cs[cs.length-1].id:null}})}};
+    }
+
+    // fixed
+    const fxMonths=[...new Set([...months,today().slice(0,7)])].sort();fxMonths.push(nextMonth(fxMonths[fxMonths.length-1]));
+    const fxMonth=st.fixedMonth||month;const fxv=(data.fixed||{})[fxMonth]||{};
+    const fxRows=FIX.map(F=>({n:F.n,v:fxv[F.k]||'',acc:resA((fxv.accs||{})[F.k]),
+      onAcc:e=>{const v=e.target.value;this.setData(d=>{const f={...((d.fixed||{})[fxMonth]||{})};f.accs={...(f.accs||{}),[F.k]:v};return {...d,fixed:{...d.fixed,[fxMonth]:f}}})},on:e=>{const v=e.target.value;this.setData(d=>({...d,fixed:{...d.fixed,[fxMonth]:{...((d.fixed||{})[fxMonth]||{}),[F.k]:v}}}))}}));
+    const fxSummary=tr.slice().reverse().map(t=>({l:mLabel(t.m),p:inr(t.p),f:inr(t.f),n:inr(t.n),nc:pctColor(t.n),pick:()=>this.setState({fixedMonth:t.m})}));
+
+    // detail
+    let d={};const dc=st.detailId&&data.consignments.find(c=>c.id===st.detailId);
+    if(dc){const k=calc(dc);d={id:dc.id,date:dLabel(dc.date),supplier:dc.supplier||'No supplier',status:k.status,sBg:pillBg(k),sFg:pillFg(k),
+      sales:inr(k.sAmt),pur:inr(k.pAmt),exp:inr(k.exp),profit:inr(k.profit),pc:colorOf(k),perKg:inr(k.perKg),margin:k.margin.toFixed(1)+'%',pKg:kgf(k.pKg),sKg:kgf(k.sKg),
+      purRows:GR.filter(G=>k.g[G.k].kg).map(G=>({n:G.n,kg:kgf(k.g[G.k].kg),rate:inr(k.g[G.k].rate),amt:inr(k.g[G.k].amt)})),
+      expRows:(dc.expenses||[]).filter(e=>num(e.amount)).map(e=>({n:(EXP.find(x=>x.k===e.cat)||{}).n,note:e.note||'',amt:inr(e.amount)})),
+      salRows:GR.filter(G=>k.g[G.k].skg).map(G=>({n:G.n,kg:kgf(k.g[G.k].skg),rate:inr(k.g[G.k].samt/k.g[G.k].skg),amt:inr(k.g[G.k].samt)})),
+      buyers:(dc.sales||[]).map(s=>{let q=0,a=0;GR.forEach(G=>{const l=s.lines[G.k]||{};q+=num(l.kg);a+=num(l.kg)*num(l.rate)});return {n:s.buyer||'Unnamed buyer',date:dLabel(s.date),kg:kgf(q),amt:inr(a)}}),
+      stockRows:GR.filter(G=>k.g[G.k].rem>0).map(G=>({n:G.n,kg:kgf(k.g[G.k].rem)})),noStock:k.rem<=0,
+      edit:()=>this.edit(dc.id),pdf:()=>this.pdfDownload('ASA-Traders-'+dc.id,this.consReport(dc)),xls:()=>this.dlXls('ASA-Traders-'+dc.id,this.consReport(dc))}}
+
+    // accounts & ledger
+    const L=ledger(data);
+    const accCards=ACC.map(a=>{let i=0,o=0;L.forEach(r=>{if(r.acc===a.id){if(r.type==='in')i+=r.amount;else o+=r.amount}});const b=num(a.opening)+i-o;
+      return {id:a.id,name:a.name,type:a.type||'Bank',b,i,o,bal:inr(b),bc:b<0?C_L:'#1d2b22',op:inr(a.opening),inc:inr(i),out:inr(o),bd:st.lgAcc===a.id?'#1f5c3d':'#e4e0d2',
+        edit:()=>this.setState({af:{id:a.id,name:a.name,type:a.type||'Bank',opening:a.opening||''}}),filter:()=>this.setState({lgAcc:a.id,lgMonth:'all'})}});
+    const af=st.af;const setAf=f=>e=>{const v=e.target.value;this.setState(s=>({af:{...s.af,[f]:v}}))};
+    const lgMonth=st.lgMonth||month,lgAcc=st.lgAcc||'all',lgType=st.lgType||'all';
+    const LF=L.filter(r=>(lgMonth==='all'||(r.date||'').slice(0,7)===lgMonth)&&(lgAcc==='all'||r.acc===lgAcc)&&(lgType==='all'||r.type===lgType));
+    const lgIn=LF.filter(r=>r.type==='in').reduce((s,r)=>s+r.amount,0),lgOut=LF.filter(r=>r.type==='out').reduce((s,r)=>s+r.amount,0);
+    const accName=id=>(ACC.find(a=>a.id===id)||{}).name||'—';
+    const lgRows=LF.map(r=>({cat:r.cat,ref:r.ref,badgeBg:r.mid?'#efece0':'#e3ece1',badgeFg:r.mid?'#5f6b62':'#1f5c3d',amt:(r.type==='in'?'+ ':'− ')+inr(r.amount),color:r.type==='in'?C_P:C_L,
+      date:dLabel(r.date),desc:r.desc||'—',acc:r.acc,onAcc:e=>this.setRowAcc(r,e.target.value),edit:()=>this.editRow(r),canDel:!!r.mid,del:()=>this.delManual(r.mid)}));
+    this._lg={label:(lgMonth==='all'?'All months':mLabel(lgMonth,true))+' · '+(lgAcc==='all'?'All accounts':accName(lgAcc))+' · '+(lgType==='all'?'Income & expense':lgType==='in'?'Income only':'Expense only'),
+      inc:lgIn,out:lgOut,cards:accCards.map(a=>[a.name,a.op,a.inc,a.out,a.bal]),
+      rows:LF.map(r=>[dLabel(r.date),r.cat+(r.desc?' — '+r.desc:''),r.ref,accName(r.acc),r.type==='in'?inr(r.amount):'',r.type==='out'?inr(r.amount):''])};
+    const mfD={type:'out',date:today(),cat:OUT_CATS[0],desc:'',amount:'',acc:resA()};const mf=st.mf||mfD;
+    const setMf=f=>e=>{const v=e.target.value;this.setState(s=>({mf:{...(s.mf||mfD),[f]:v}}))};
+    const lgMonthOpts=[{v:'all',l:'All months'}].concat([...new Set(L.map(r=>(r.date||'').slice(0,7)).filter(Boolean))].sort().reverse().map(m=>({v:m,l:mLabel(m,true)})));
+    const tip=st.tip;const navBg=v=>view===v?'#f4f2ea':'transparent',navFg=v=>view===v?'#1d2b22':'#dfe7de';
+    return {
+      goDash:()=>this.setState({view:'dashboard'}),goEntry:()=>this.setState({view:'entry'}),goFixed:()=>this.setState({view:'fixed',fixedMonth:month,tip:null}),
+      navDashBg:navBg('dashboard'),navDashFg:navFg('dashboard'),navEntryBg:navBg('entry'),navEntryFg:navFg('entry'),navFixedBg:navBg('fixed'),navFixedFg:navFg('fixed'),
+      isDash:view==='dashboard',isEntry:view==='entry',isFixed:view==='fixed',
+      monthLong:mLabel(month,true),month,monthOpts:(months.length?months:[month]).slice().reverse().map(m=>({v:m,l:mLabel(m,true)})),onMonth:e=>this.setState({month:e.target.value,cons:'all'}),
+      consSel,consOpts:monthCons.map(({c,k})=>({v:c.id,l:c.id+' · '+k.status})),onCons:e=>this.setState({cons:e.target.value}),
+      scopeLabel:consSel==='all'?monthCons.length+' consignment'+(monthCons.length===1?'':'s'):consSel,
+      exportMonthPdf:()=>this.pdfDownload('ASA-Traders-'+month,this.monthReport()),exportMonthXls:()=>this.dlXls('ASA-Traders-'+month,this.monthReport()),
+      netV:M(net),netChip:net>=0?'PROFIT':'LOSS',netChipBg:net>=0?'#8fd3a5':'#f19a86',netChipFg:'#1d2b22',heroProfit:M(monthProfit),heroFixed:M(fx),
+      kSales:M(tSales),kPur:M(tPur),kExp:M(tExp),kProf:M(tProf),kProfColor:pctColor(tProf),kFixed:M(fx),kCount:String(set.length),
+      kCountSub:nCompleted+' completed · '+(monthCons.length-nCompleted)+' in progress',kKg:kgf(tKg),kPerKg:inr(tKg?tProf/tKg:0),kPerKgColor:pctColor(tProf),
+      noSet:set.length===0,p1Zero:zero,p1Bars,g2Bars,trCols,trDots,trendSvg,wfBars,wfZero:wMx/wRg*100,
+      gmRows,gmZero,hasGm:gmRows.length>0,noGm:gmRows.length===0,donutBg,donutMove,donutClick,expTotalShort:sh(cats.length?eTot:0),expLegend,
+      stockRows,hasStock:stockRows.length>0,noStock:stockRows.length===0,listRows,newCons:this.newCons,
+      activeId:ac?ac.id:'',activeOpts:all.slice().reverse().map(({c,k})=>({v:c.id,l:c.id+' · '+dLabel(c.date)+' · '+k.status})),onActive:e=>this.setState({activeId:e.target.value,step:'purchase',saleIdx:0}),
+      ...entry,
+      fxMonth,fxMonthLong:mLabel(fxMonth,true),fxMonthOpts:fxMonths.slice().reverse().map(m=>({v:m,l:mLabel(m,true)})),onFxMonth:e=>this.setState({fixedMonth:e.target.value}),
+      fxRows,fxTotal:inr(fixedTotal(data,fxMonth)),fxSummary,
+      showDetail:!!dc,d,closeDetail:()=>this.setState({detailId:null}),stop:e=>e.stopPropagation(),
+      showDrill:!!st.drill,dr:st.drill||{rows:[]},closeDrill:()=>this.setState({drill:null}),
+      goAcc:()=>this.setState({view:'acc',tip:null}),navAccBg:navBg('acc'),navAccFg:navFg('acc'),isAcc:view==='acc',accOpts,
+      avgCostLabel:inr(avgCost),buyerRows,buyerTot,hasBuyers:buyerRows.length>0,noBuyers:buyerRows.length===0,
+      accCards,accTotal:inr(accCards.reduce((s,a)=>s+a.b,0)),newAcc:()=>this.setState({af:{name:'',type:'Bank',opening:''}}),
+      showAf:!!af,afTitle:af&&af.id?'Edit account':'New account',afName:af?af.name:'',afType:af?af.type:'Bank',afOpening:af?af.opening:'',afTypes:ACC_TYPES,
+      onAfName:setAf('name'),onAfType:setAf('type'),onAfOpening:setAf('opening'),saveAf:()=>this.saveAf(),cancelAf:()=>this.setState({af:null}),delAf:()=>this.delAf(),afDelVis:af&&af.id?'visible':'hidden',
+      mfRef:this.mfRef,mfTitle:st.mfEdit?'Edit entry':'Add other income / expense',mfSaveLabel:st.mfEdit?'Save changes':'Add entry',mfCancelVis:st.mfEdit?'visible':'hidden',
+      mf,mfCats:mf.type==='in'?IN_CATS:OUT_CATS,mfInBg:mf.type==='in'?C_P:'#fffdf7',mfInFg:mf.type==='in'?'#fff':'#1d2b22',mfOutBg:mf.type==='out'?C_L:'#fffdf7',mfOutFg:mf.type==='out'?'#fff':'#1d2b22',
+      mfSetIn:()=>this.setState(s=>({mf:{...(s.mf||mfD),type:'in',cat:IN_CATS[0]}})),mfSetOut:()=>this.setState(s=>({mf:{...(s.mf||mfD),type:'out',cat:OUT_CATS[0]}})),
+      onMfDate:setMf('date'),onMfCat:setMf('cat'),onMfDesc:setMf('desc'),onMfAmount:setMf('amount'),onMfAcc:setMf('acc'),saveMf:()=>this.saveMf(mf),cancelMf:()=>this.setState({mf:null,mfEdit:null}),
+      lgMonth,lgMonthOpts,lgAcc,lgType,onLgMonth:e=>this.setState({lgMonth:e.target.value}),onLgAcc:e=>this.setState({lgAcc:e.target.value}),onLgType:e=>this.setState({lgType:e.target.value}),
+      lgRows,hasLg:lgRows.length>0,noLg:lgRows.length===0,lgIn:inr(lgIn),lgOut:inr(lgOut),lgNet:inr(lgIn-lgOut),lgNetC:pctColor(lgIn-lgOut),lgCount:lgRows.length+' entries',
+      lgPdf:()=>this.exportLg('pdf'),lgXls:()=>this.exportLg('xls'),
+      tipShow:!!tip,tipX:tip?tip.x:0,tipY:tip?tip.y:0,tipTitle:tip?tip.title:'',tipLines:tip?tip.lines:[],hideTip
+    };
+  }
+}
+</script>
+</body>
+</html>
